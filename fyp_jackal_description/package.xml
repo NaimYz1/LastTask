@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>fyp_jackal_description</name>
+  <version>0.1.0</version>
+  <description>
+    Jackal robot description for the FYP: standard Jackal + Hokuyo UST-10LX
+    (front mount) + Livox Mid-360 (tilted nose-down) simulated with the
+    livox_laser_simulation Gazebo plugin.
+  </description>
+  <maintainer email="hafizmaktabsabah@gmail.com">Hafiz</maintainer>
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <exec_depend>jackal_description</exec_depend>
+  <exec_depend>xacro</exec_depend>
+  <!-- Built from source in the same workspace:
+       https://github.com/Livox-SDK/livox_laser_simulation -->
+  <exec_depend>livox_laser_simulation</exec_depend>
+</package>

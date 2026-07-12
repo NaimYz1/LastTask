@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>fyp_jackal_gazebo</name>
+  <version>0.1.0</version>
+  <description>
+    Gazebo simulation for the FYP: arena world containing a hollow bridge
+    (task 1: drive underneath it) and a thin-legged tripod with a box on top
+    (task 2: avoid it), plus launch files that spawn the sensor-equipped
+    Jackal.
+  </description>
+  <maintainer email="hafizmaktabsabah@gmail.com">Hafiz</maintainer>
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <exec_depend>fyp_jackal_description</exec_depend>
+  <exec_depend>gazebo_ros</exec_depend>
+  <exec_depend>jackal_control</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>xacro</exec_depend>
+</package>

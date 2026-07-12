@@ -1,0 +1,26 @@
+# Baseline configuration: 2D lidar ONLY (no Mid-360). Used to demonstrate
+# the failure modes that motivate the 3D integration:
+#   * the tripod's elevated box is invisible (only thin flickering leg hits)
+#   * any overhanging structure below robot height would not be seen at all
+# Select with:  roslaunch fyp_jackal_navigation nav.launch use_mid360:=false
+
+footprint: [[-0.21, -0.165], [-0.21, 0.165], [0.21, 0.165], [0.21, -0.165]]
+footprint_padding: 0.08
+transform_tolerance: 0.5
+
+obstacles_layer:
+  observation_sources: scan
+  scan:
+    sensor_frame: front_laser
+    data_type: LaserScan
+    topic: front/scan
+    marking: true
+    clearing: true
+    obstacle_range: 5.5
+    raytrace_range: 6.5
+    min_obstacle_height: -1.0
+    max_obstacle_height: 1.0
+
+inflater_layer:
+  inflation_radius: 0.30
+  cost_scaling_factor: 5.0

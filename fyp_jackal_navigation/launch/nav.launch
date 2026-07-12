@@ -1,0 +1,23 @@
+<launch>
+  <!-- Full navigation stack: map_server + AMCL (Hokuyo) + move_base
+       (Hokuyo + Mid-360 fused costmaps).
+
+       Arguments:
+         use_mid360:=false  -> 2D-lidar-only baseline (failure demonstration)
+         clearance:=2.0     -> "naive 3D" demonstration: with a huge clearance
+                               value every Mid-360 point marks, so the bridge
+                               deck blocks the doorway and no path exists.
+                               Default 0.55 m = robot height + margin. -->
+  <arg name="use_mid360" default="true"/>
+  <arg name="clearance" default="0.55"/>
+  <arg name="map_file" default="$(find fyp_jackal_navigation)/maps/fyp_arena.yaml"/>
+
+  <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)"/>
+
+  <include file="$(find fyp_jackal_navigation)/launch/include/amcl.launch"/>
+
+  <include file="$(find fyp_jackal_navigation)/launch/include/move_base.launch">
+    <arg name="use_mid360" value="$(arg use_mid360)"/>
+    <arg name="clearance" value="$(arg clearance)"/>
+  </include>
+</launch>

@@ -1,0 +1,6 @@
+<launch>
+  <!-- RViz preconfigured for the FYP: map, AMCL, costmaps, Hokuyo scan and
+       Mid-360 point cloud. -->
+  <node name="rviz" pkg="rviz" type="rviz"
+        args="-d $(find fyp_jackal_navigation)/rviz/fyp_nav.rviz"/>
+</launch>

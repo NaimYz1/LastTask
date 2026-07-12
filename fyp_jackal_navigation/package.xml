@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>fyp_jackal_navigation</name>
+  <version>0.1.0</version>
+  <description>
+    Navigation for the FYP Jackal: AMCL localization on the Hokuyo 2D lidar,
+    move_base with the Livox Mid-360 point cloud fused into the costmaps via
+    a height-filtered voxel layer. Overhead structure above the robot's
+    clearance height (e.g. a bridge deck) is ignored so the robot can drive
+    underneath, while lower 3D obstacles (tripod box, bridge supports) are
+    marked and avoided.
+  </description>
+  <maintainer email="hafizmaktabsabah@gmail.com">Hafiz</maintainer>
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <exec_depend>amcl</exec_depend>
+  <exec_depend>base_local_planner</exec_depend>
+  <exec_depend>costmap_2d</exec_depend>
+  <exec_depend>map_server</exec_depend>
+  <exec_depend>move_base</exec_depend>
+  <exec_depend>navfn</exec_depend>
+  <exec_depend>rviz</exec_depend>
+</package>

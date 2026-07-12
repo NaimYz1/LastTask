@@ -1,0 +1,32 @@
+<launch>
+  <arg name="use_mid360" default="true"/>
+  <arg name="clearance" default="0.55"/>
+
+  <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+    <param name="base_global_planner" value="navfn/NavfnROS"/>
+    <param name="base_local_planner" value="base_local_planner/TrajectoryPlannerROS"/>
+    <param name="controller_frequency" value="10.0"/>
+    <param name="planner_frequency" value="2.0"/>
+
+    <rosparam file="$(find fyp_jackal_navigation)/params/costmap_common.yaml"
+              command="load" ns="global_costmap" if="$(arg use_mid360)"/>
+    <rosparam file="$(find fyp_jackal_navigation)/params/costmap_common.yaml"
+              command="load" ns="local_costmap" if="$(arg use_mid360)"/>
+    <rosparam file="$(find fyp_jackal_navigation)/params/costmap_common_2donly.yaml"
+              command="load" ns="global_costmap" unless="$(arg use_mid360)"/>
+    <rosparam file="$(find fyp_jackal_navigation)/params/costmap_common_2donly.yaml"
+              command="load" ns="local_costmap" unless="$(arg use_mid360)"/>
+
+    <rosparam file="$(find fyp_jackal_navigation)/params/local_costmap.yaml" command="load"/>
+    <rosparam file="$(find fyp_jackal_navigation)/params/global_costmap.yaml" command="load"/>
+    <rosparam file="$(find fyp_jackal_navigation)/params/base_local_planner.yaml" command="load"/>
+
+    <!-- Overhead clearance override (must come AFTER the rosparam loads):
+         Mid-360 points above this height (metres, floor frame) are ignored,
+         because the robot can pass underneath them. -->
+    <param name="global_costmap/obstacles_layer/mid360/max_obstacle_height"
+           value="$(arg clearance)" if="$(arg use_mid360)"/>
+    <param name="local_costmap/obstacles_layer/mid360/max_obstacle_height"
+           value="$(arg clearance)" if="$(arg use_mid360)"/>
+  </node>
+</launch>

@@ -1,0 +1,38 @@
+<launch>
+  <!-- Spawns the FYP Jackal (Hokuyo UST-10 + tilted Livox Mid-360) into an
+       already-running Gazebo, and brings up its controllers.
+       Modelled on jackal_gazebo/launch/spawn_jackal.launch (melodic), but
+       loads our own URDF so that no Jackal environment variables are
+       required. -->
+  <arg name="x" default="0"/>
+  <arg name="y" default="0"/>
+  <arg name="z" default="0.2"/>
+  <arg name="yaw" default="0"/>
+  <arg name="joystick" default="false"/>
+
+  <!-- Mid-360 mount tuning (match to the real robot when measured). -->
+  <arg name="mid360_xyz" default="0.17 0 0.14"/>
+  <arg name="mid360_tilt_deg" default="38.22"/>
+  <!-- Rays per lidar update; lower this if the VM simulation runs slowly. -->
+  <arg name="mid360_samples" default="10000"/>
+
+  <param name="robot_description"
+         command="$(find xacro)/xacro '$(find fyp_jackal_description)/urdf/fyp_jackal.urdf.xacro'
+                  mid360_xyz:='$(arg mid360_xyz)'
+                  mid360_tilt_deg:=$(arg mid360_tilt_deg)
+                  mid360_samples:=$(arg mid360_samples)"/>
+
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
+
+  <!-- Velocity controllers, EKF odometry (odom -> base_link), twist mux. -->
+  <include file="$(find jackal_control)/launch/control.launch"/>
+
+  <!-- Teleop (interactive markers in RViz; joystick off by default). -->
+  <include file="$(find jackal_control)/launch/teleop.launch">
+    <arg name="joystick" value="$(arg joystick)"/>
+  </include>
+
+  <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model"
+        args="-urdf -model jackal -param robot_description
+              -x $(arg x) -y $(arg y) -z $(arg z) -Y $(arg yaw)"/>
+</launch>

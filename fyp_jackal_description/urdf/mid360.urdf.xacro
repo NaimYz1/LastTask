@@ -1,0 +1,96 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!--
+    Livox Mid-360 macro for Gazebo simulation, wrapping the
+    livox_laser_simulation plugin (https://github.com/Livox-SDK/livox_laser_simulation).
+
+    Notes:
+    * The plugin publishes sensor_msgs/PointCloud (the legacy type, NOT
+      PointCloud2) on ${topic}.
+    * The cloud's header.frame_id is set to the Gazebo SENSOR name, so the
+      sensor below is deliberately named the same as the URDF link
+      (${name}_link) to make TF lookups work out of the box.
+    * The <ray> block must live INSIDE <plugin> (that is where the plugin
+      reads it from); this mirrors the structure of the official xacros.
+    * Real Mid-360 FOV: 360 deg horizontal, -7.22 to +52.22 deg vertical.
+  -->
+  <xacro:macro name="livox_mid360"
+               params="name:=mid360 parent topic:=mid360/points
+                       samples:=10000 downsample:=1 update_rate:=10
+                       visualize:=false min_range:=0.1 max_range:=40.0
+                       *origin">
+
+    <link name="${name}_link">
+      <visual>
+        <origin xyz="0 0 0.0235" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="0.0325" length="0.047"/>
+        </geometry>
+        <material name="${name}_dark_grey">
+          <color rgba="0.25 0.25 0.30 1.0"/>
+        </material>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0.0235" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="0.0325" length="0.047"/>
+        </geometry>
+      </collision>
+      <inertial>
+        <mass value="0.265"/>
+        <origin xyz="0 0 0.0235" rpy="0 0 0"/>
+        <inertia ixx="0.00016" ixy="0" ixz="0"
+                 iyy="0.00016" iyz="0" izz="0.00014"/>
+      </inertial>
+    </link>
+
+    <joint name="${name}_joint" type="fixed">
+      <parent link="${parent}"/>
+      <child link="${name}_link"/>
+      <xacro:insert_block name="origin"/>
+    </joint>
+
+    <gazebo reference="${name}_link">
+      <sensor type="ray" name="${name}_link">
+        <pose>0 0 0.0235 0 0 0</pose>
+        <visualize>${visualize}</visualize>
+        <update_rate>${update_rate}</update_rate>
+        <plugin name="${name}_livox_controller" filename="liblivox_laser_simulation.so">
+          <ray>
+            <scan>
+              <horizontal>
+                <samples>100</samples>
+                <resolution>1</resolution>
+                <min_angle>0</min_angle>
+                <max_angle>6.28318530718</max_angle>
+              </horizontal>
+              <vertical>
+                <samples>360</samples>
+                <resolution>1</resolution>
+                <min_angle>-0.12601</min_angle>
+                <max_angle>0.91143</max_angle>
+              </vertical>
+            </scan>
+            <range>
+              <min>${min_range}</min>
+              <max>${max_range}</max>
+              <resolution>0.002</resolution>
+            </range>
+            <noise>
+              <type>gaussian</type>
+              <mean>0.0</mean>
+              <stddev>0.008</stddev>
+            </noise>
+          </ray>
+          <visualize>${visualize}</visualize>
+          <samples>${samples}</samples>
+          <downsample>${downsample}</downsample>
+          <csv_file_name>package://livox_laser_simulation/scan_mode/mid360.csv</csv_file_name>
+          <ros_topic>${topic}</ros_topic>
+        </plugin>
+      </sensor>
+    </gazebo>
+  </xacro:macro>
+
+</robot>

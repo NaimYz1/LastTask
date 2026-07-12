@@ -1,0 +1,64 @@
+<?xml version="1.0"?>
+<robot name="jackal" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!--
+    FYP Jackal: stock Clearpath Jackal
+      + Hokuyo UST-10LX on the standard front mount   (topic front/scan,  frame front_laser)
+      + Livox Mid-360 tilted nose-down                (topic mid360/points, frame mid360_link)
+
+    The Mid-360 pose is exposed as xacro args so the simulated mount can be
+    matched to the real robot once it is measured:
+
+      mid360_xyz       offset from the mid_mount frame (top plate centre), metres
+      mid360_tilt_deg  nose-down pitch in degrees (positive = looking down)
+      mid360_samples   rays per plugin update (lower = faster simulation)
+
+    The default xyz places the sensor slightly forward of centre and raised,
+    so that the tilted 360-degree FOV does not hit the Jackal's own chassis
+    (self-returns would be marked as obstacles in the costmap).
+  -->
+  <xacro:arg name="mid360_xyz"      default="0.17 0 0.14"/>
+  <xacro:arg name="mid360_tilt_deg" default="38.22"/>
+  <xacro:arg name="mid360_samples"  default="10000"/>
+
+  <!-- Stock Jackal (chassis, wheels, IMU, Gazebo control plugins). -->
+  <xacro:include filename="$(find jackal_description)/urdf/jackal.urdf.xacro"/>
+
+  <!-- Hokuyo UST-10LX, standard Clearpath front mount. -->
+  <xacro:include filename="$(find jackal_description)/urdf/accessories/hokuyo_ust10.urdf.xacro"/>
+  <xacro:hokuyo_ust10_mount prefix="front" topic="front/scan" parent_link="front_mount">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </xacro:hokuyo_ust10_mount>
+
+  <!-- Livox Mid-360, tilted nose-down. -->
+  <xacro:include filename="$(find fyp_jackal_description)/urdf/mid360.urdf.xacro"/>
+  <xacro:property name="mid360_tilt_deg_val" value="$(arg mid360_tilt_deg)"/>
+
+  <!-- Cosmetic mounting post under the sensor. -->
+  <link name="mid360_riser">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.015" length="0.12"/>
+      </geometry>
+      <material name="riser_black">
+        <color rgba="0.1 0.1 0.1 1.0"/>
+      </material>
+    </visual>
+    <inertial>
+      <mass value="0.05"/>
+      <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001"/>
+    </inertial>
+  </link>
+  <joint name="mid360_riser_joint" type="fixed">
+    <parent link="mid_mount"/>
+    <child link="mid360_riser"/>
+    <origin xyz="0.17 0 0.06" rpy="0 0 0"/>
+  </joint>
+
+  <xacro:livox_mid360 name="mid360" parent="mid_mount" topic="mid360/points"
+                      samples="$(arg mid360_samples)">
+    <origin xyz="$(arg mid360_xyz)" rpy="0 ${mid360_tilt_deg_val * pi / 180.0} 0"/>
+  </xacro:livox_mid360>
+
+</robot>

@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(gh --version)",
+      "PowerShell(gh auth status)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "PowerShell(py -3 \"C:\\\\Users\\\\kfaww\\\\Desktop\\\\FYP2.0\\\\scripts\\\\generate_map.py\")"
+    ]
+  }
+}
