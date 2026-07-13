@@ -7,8 +7,9 @@ grid (1 m cells).
 ## Task 1 — Drive under the bridge
 
 The arena is split by a wall at x = 2.5 with a single doorway; the bridge
-(1.5 m wide opening, **0.85 m clearance**, robot is ~0.44 m tall) sits in
-that doorway. The bridge is **not** in the static map.
+(1.5 m wide opening, **0.85 m clearance**, robot is ~0.60 m tall to the top
+of the Mid-360 dome) sits in that doorway. The bridge is **not** in the
+static map.
 
 1. Start the three launch files (see README).
 2. In RViz confirm the Mid-360 cloud shows the deck as the robot faces it,
@@ -33,8 +34,10 @@ Evidence for the report:
 ## Task 2 — Avoid the tripod
 
 Tripod at (-3, 0): three 12 mm legs, thin centre stick, and a
-0.28 × 0.28 × 0.22 m box spanning z = 0.42–0.64 m (above the 0.19 m scan
-plane, below the 0.55 m clearance → it marks as an obstacle).
+0.28 × 0.28 × 0.22 m box spanning z = 0.42–0.64 m (above the ~0.37 m scan
+plane, below the 0.70 m clearance → it marks as an obstacle). At 0.37 m the
+Hokuyo can only clip the converged tops of the legs — a few centimetres of
+target — so the 2D view of the tripod is almost nothing.
 
 1. **2D Nav Goal** at ~(-5, 0) — the straight path goes through the tripod.
 2. Expected: with the Mid-360, the box footprint appears as a solid obstacle
@@ -56,10 +59,11 @@ reliably than a real Hokuyo does — say so in the report.
 
 | What | Where | Default |
 |---|---|---|
-| Robot clearance (max height a 3D point may mark) | `clearance` arg of `nav.launch` → `obstacles_layer/mid360/max_obstacle_height` | 0.55 m |
+| Robot clearance (max height a 3D point may mark) | `clearance` arg of `nav.launch` → `obstacles_layer/mid360/max_obstacle_height` | 0.70 m |
 | Ground-return cutoff | `mid360/min_obstacle_height` in `costmap_common.yaml` | 0.08 m |
 | Mid-360 tilt | `mid360_tilt_deg` arg of `fyp_world.launch` | 38.22° |
-| Mid-360 position on top plate (from `mid_mount`) | `mid360_xyz` arg | `0.17 0 0.14` |
+| Mid-360 position on tower (from `mid_mount`, top plate centre) | `mid360_xyz` arg | `-0.02 0 0.30` |
+| Hokuyo position on riser box (from `mid_mount`) | `hokuyo_xyz` xacro arg in `fyp_jackal.urdf.xacro` | `0.08 0 0.075` |
 | Lidar rays per update (sim speed) | `mid360_samples` arg | 10000 |
 | Bridge/tripod dimensions | `fyp_jackal_gazebo/worlds/fyp_arena.world` (commented) | see world |
 | Arena map | regenerate with `python scripts/generate_map.py` after editing the world's *permanent* structure | — |

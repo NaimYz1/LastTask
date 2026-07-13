@@ -4,12 +4,12 @@ Navigation for a Clearpath Jackal J100 with a **Hokuyo UST-10LX** (2D, front
 mount) and a **Livox Mid-360** (3D, tilted ~38.22° nose-down), on
 **Ubuntu 18.04 / ROS Melodic / Gazebo 9**.
 
-A 2D lidar only sees a single horizontal slice of the world (~0.19 m above
-the floor on the Jackal). Two situations break it:
+A 2D lidar only sees a single horizontal slice of the world (~0.37 m above
+the floor with our top-plate mount). Two situations break it:
 
 | Task | Problem for the 2D lidar | Solution |
 |------|--------------------------|----------|
-| **1. Bridge** (hollow underneath) | Scan plane passes through the open space — the robot is blind to the deck overhead. Is there clearance to drive under? | Mid-360 sees the full structure. Points are **height-filtered** in the costmap: anything above the robot's clearance (0.55 m) is ignored, so the robot confidently drives **under** the bridge while still avoiding its side supports. |
+| **1. Bridge** (hollow underneath) | Scan plane passes through the open space — the robot is blind to the deck overhead. Is there clearance to drive under? | Mid-360 sees the full structure. Points are **height-filtered** in the costmap: anything above the robot's clearance (0.70 m) is ignored, so the robot confidently drives **under** the bridge while still avoiding its side supports. |
 | **2. Tripod** (thin legs, box on top) | Legs are near-invisible (thin), the box floats above the scan plane. | Mid-360 marks the box and legs in the costmap → robot avoids it. |
 
 ## How it works
@@ -22,8 +22,9 @@ Mid-360 /mid360/points ─►  move_base costmaps (obstacle source "mid360",
 ```
 
 The single most important parameter is
-`obstacles_layer/mid360/max_obstacle_height` (**0.55 m** = robot height +
-margin) in [costmap_common.yaml](fyp_jackal_navigation/params/costmap_common.yaml)
+`obstacles_layer/mid360/max_obstacle_height` (**0.70 m** = robot height
+including the Mid-360 dome, ~0.60 m, + margin) in
+[costmap_common.yaml](fyp_jackal_navigation/params/costmap_common.yaml)
 — 3D points above it are treated as passable overhead structure, points
 below it as real obstacles. It is exposed as the `clearance` launch argument.
 

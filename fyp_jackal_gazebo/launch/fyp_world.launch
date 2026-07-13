@@ -5,7 +5,7 @@
   <arg name="gui" default="true"/>
   <arg name="headless" default="false"/>
 
-  <arg name="mid360_xyz" default="0.17 0 0.14"/>
+  <arg name="mid360_xyz" default="-0.02 0 0.30"/>
   <arg name="mid360_tilt_deg" default="38.22"/>
   <arg name="mid360_samples" default="10000"/>
 

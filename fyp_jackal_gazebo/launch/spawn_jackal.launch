@@ -11,7 +11,7 @@
   <arg name="joystick" default="false"/>
 
   <!-- Mid-360 mount tuning (match to the real robot when measured). -->
-  <arg name="mid360_xyz" default="0.17 0 0.14"/>
+  <arg name="mid360_xyz" default="-0.02 0 0.30"/>
   <arg name="mid360_tilt_deg" default="38.22"/>
   <!-- Rays per lidar update; lower this if the VM simulation runs slowly. -->
   <arg name="mid360_samples" default="10000"/>

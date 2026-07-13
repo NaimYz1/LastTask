@@ -1,6 +1,6 @@
 <launch>
   <arg name="use_mid360" default="true"/>
-  <arg name="clearance" default="0.55"/>
+  <arg name="clearance" default="0.70"/>
 
   <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
     <param name="base_global_planner" value="navfn/NavfnROS"/>

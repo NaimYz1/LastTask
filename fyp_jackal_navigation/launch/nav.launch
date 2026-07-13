@@ -7,9 +7,10 @@
          clearance:=2.0     -> "naive 3D" demonstration: with a huge clearance
                                value every Mid-360 point marks, so the bridge
                                deck blocks the doorway and no path exists.
-                               Default 0.55 m = robot height + margin. -->
+                               Default 0.70 m = robot height (Mid-360 dome
+                               ~0.60 m) + margin. -->
   <arg name="use_mid360" default="true"/>
-  <arg name="clearance" default="0.55"/>
+  <arg name="clearance" default="0.70"/>
   <arg name="map_file" default="$(find fyp_jackal_navigation)/maps/fyp_arena.yaml"/>
 
   <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)"/>
