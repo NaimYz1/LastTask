@@ -9,10 +9,13 @@ Status as checked on 2026-07-13: the robot already runs everything sensor-side.
 | Hokuyo (urg_node) | `/scan` | `laser` | running |
 | Mid-360 (Livox driver) | `/livox/lidar` (+`/livox/imu`) | `livox_frame` (verify) | running |
 
-Robot geometry (measured 2026-07-13): Mid-360 dome centre ~0.455 m above the
-floor (tallest point ~0.50 m), Hokuyo optical centre ~0.355 m, tilt 38.22°
-nose-down (mount design value). Real bridge: ~0.75 m clearance × ~1.0 m wide.
-Real tripod: box top at ~1.07 m, legs ~0.26 m spread at the floor.
+Robot geometry: Mid-360 tilt **38.73° nose-down, sensor 0.440 m above the
+floor** — measured with `rosrun fyp_jackal_navigation measure_tilt.py`
+(floor-plane fit, 2026-07-13; agrees with the ~0.455 m tape measure). The
+45° static TF from the peer's amr_system is mis-calibrated by ~6°. Robot's
+tallest point ~0.50 m; Hokuyo optical centre ~0.31 m (per its TF). Real
+bridge: ~0.75 m clearance × ~1.0 m wide. Real tripod: box top at ~1.07 m,
+legs ~0.26 m spread at the floor.
 
 ## 1. Pre-flight checks (5 commands on the robot)
 

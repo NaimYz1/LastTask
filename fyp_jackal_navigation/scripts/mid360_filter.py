@@ -34,8 +34,8 @@ class Mid360Filter(object):
     def __init__(self):
         mount_x = rospy.get_param('~mount_x', 0.179)
         mount_y = rospy.get_param('~mount_y', 0.0)
-        mount_z = rospy.get_param('~mount_z', 0.394)
-        pitch = rospy.get_param('~mount_pitch', 0.7854)  # rad, nose-down
+        mount_z = rospy.get_param('~mount_z', 0.375)
+        pitch = rospy.get_param('~mount_pitch', 0.6759)  # rad nose-down, measured (38.73 deg)
         self.min_z = rospy.get_param('~min_z', 0.12)     # base_link frame
         self.max_z = rospy.get_param('~max_z', 0.50)
         self.min_range = rospy.get_param('~min_range', 0.30)

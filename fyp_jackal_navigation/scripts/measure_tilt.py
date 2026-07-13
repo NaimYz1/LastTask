@@ -113,7 +113,7 @@ class TiltMeasure(object):
         print('Floor plane: %d inlier points (of %d used)' % (best_count, pts.shape[0]))
         print('Nose-down pitch : %7.2f deg   (%.4f rad)' % (np.degrees(pitch), pitch))
         print('Lateral roll    : %7.2f deg   (should be near 0)' % np.degrees(roll))
-        print('Sensor height   : %7.3f m    (tape measure said ~0.455;')
+        print('Sensor height   : %7.3f m    (tape measure said ~0.455;' % height)
         print('                                if this is far off, rerun on clearer floor)')
         print('')
         print('If the pitch differs from the current default (45.00 deg), launch with:')

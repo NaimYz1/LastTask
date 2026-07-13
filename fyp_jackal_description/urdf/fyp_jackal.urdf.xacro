@@ -23,7 +23,8 @@
   -->
   <xacro:arg name="hokuyo_xyz"      default="0.08 0 0.075"/>
   <xacro:arg name="mid360_xyz"      default="-0.02 0 0.30"/>
-  <xacro:arg name="mid360_tilt_deg" default="38.22"/>
+  <!-- 38.73 deg measured on the real robot with measure_tilt.py (2026-07-13). -->
+  <xacro:arg name="mid360_tilt_deg" default="38.73"/>
   <xacro:arg name="mid360_samples"  default="10000"/>
 
   <!-- Stock Jackal (chassis, wheels, IMU, Gazebo control plugins). -->

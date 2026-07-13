@@ -24,13 +24,15 @@
   <arg name="clearance" default="10.0"/>
   <arg name="scan_topic" default="scan"/>
 
-  <!-- Fallback mount values, only used with publish_mid360_tf:=true.
-       Mirrors the robot's own TF: xyz [0.179, 0, 0.394], pitch 45 deg
-       (0.7854 rad). -->
+  <!-- Mount values, MEASURED with measure_tilt.py on 2026-07-13:
+       nose-down pitch 38.73 deg (0.6759 rad), sensor 0.440 m above the
+       floor -> z = 0.375 from base_link. (The 45 deg static TF from the
+       peer's amr_system is mis-calibrated by ~6 deg; the old 38.22 design
+       figure was nearly right.) These feed the mid360_filter node. -->
   <arg name="mid360_x" default="0.179"/>
   <arg name="mid360_y" default="0.0"/>
-  <arg name="mid360_z" default="0.394"/>
-  <arg name="mid360_pitch" default="0.7854"/>
+  <arg name="mid360_z" default="0.375"/>
+  <arg name="mid360_pitch" default="0.6759"/>
   <arg name="mid360_frame" default="livox_frame"/>
 
   <!-- Navigation does NOT use livox_frame TF at all anymore (the
