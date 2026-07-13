@@ -6,6 +6,8 @@
   <arg name="common_params" default="$(find fyp_jackal_navigation)/params/costmap_common.yaml"/>
   <arg name="common_params_2d" default="$(find fyp_jackal_navigation)/params/costmap_common_2donly.yaml"/>
   <arg name="local_costmap_params" default="$(find fyp_jackal_navigation)/params/local_costmap.yaml"/>
+  <!-- Top driving speed (m/s). Default matches base_local_planner.yaml. -->
+  <arg name="max_vel" default="0.5"/>
 
   <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
     <param name="base_global_planner" value="navfn/NavfnROS"/>
@@ -33,5 +35,8 @@
            value="$(arg clearance)" if="$(arg use_mid360)"/>
     <param name="local_costmap/obstacles_layer/mid360/max_obstacle_height"
            value="$(arg clearance)" if="$(arg use_mid360)"/>
+
+    <!-- Speed override (after the rosparam load so it wins). -->
+    <param name="TrajectoryPlannerROS/max_vel_x" value="$(arg max_vel)"/>
   </node>
 </launch>

@@ -27,6 +27,7 @@
   <arg name="band_max_z" default="0.50"/>
   <arg name="accumulate" default="1.5"/>
   <arg name="clearance" default="10.0"/>
+  <arg name="max_vel" default="0.5"/>
   <arg name="scan_topic" default="scan"/>
 
   <!-- Mount values, MEASURED with measure_tilt.py on 2026-07-13:
@@ -92,5 +93,6 @@
          value="$(find fyp_jackal_navigation)/params/costmap_common_2donly_real.yaml"/>
     <arg name="local_costmap_params"
          value="$(find fyp_jackal_navigation)/params/local_costmap_real.yaml"/>
+    <arg name="max_vel" value="$(arg max_vel)"/>
   </include>
 </launch>
