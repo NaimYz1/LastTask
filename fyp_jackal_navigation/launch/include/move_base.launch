@@ -5,6 +5,7 @@
        nav_real.launch passes the real-robot variants). -->
   <arg name="common_params" default="$(find fyp_jackal_navigation)/params/costmap_common.yaml"/>
   <arg name="common_params_2d" default="$(find fyp_jackal_navigation)/params/costmap_common_2donly.yaml"/>
+  <arg name="local_costmap_params" default="$(find fyp_jackal_navigation)/params/local_costmap.yaml"/>
 
   <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
     <param name="base_global_planner" value="navfn/NavfnROS"/>
@@ -21,7 +22,7 @@
     <rosparam file="$(arg common_params_2d)"
               command="load" ns="local_costmap" unless="$(arg use_mid360)"/>
 
-    <rosparam file="$(find fyp_jackal_navigation)/params/local_costmap.yaml" command="load"/>
+    <rosparam file="$(arg local_costmap_params)" command="load"/>
     <rosparam file="$(find fyp_jackal_navigation)/params/global_costmap.yaml" command="load"/>
     <rosparam file="$(find fyp_jackal_navigation)/params/base_local_planner.yaml" command="load"/>
 

@@ -33,13 +33,13 @@
   <arg name="mid360_pitch" default="0.7854"/>
   <arg name="mid360_frame" default="livox_frame"/>
 
-  <!-- The livox_frame TF is NOT part of the robot's permanent bringup — it
-       came from the peer's amr_system session (verified: it disappears when
-       their launch closes). So we publish it ourselves, using the same
-       calibrated values their setup used (xyz [0.179, 0, 0.394], pitch
-       45 deg, matching the measured dome height ~0.455 m above floor).
-       Identical values mean no conflict even if their stack also runs. -->
-  <arg name="publish_mid360_tf" default="true"/>
+  <!-- Navigation does NOT use livox_frame TF at all anymore (the
+       mid360_filter node applies the mount transform itself). Something on
+       this robot publishes livox_frame with stale stamps (TF_OLD_DATA from
+       an unknown_publisher), so we stay out of that fight: default false.
+       Set true only if you want the raw /livox/lidar cloud overlaid in
+       RViz and nothing else is publishing the frame. -->
+  <arg name="publish_mid360_tf" default="false"/>
 
   <!-- static_transform_publisher args: x y z yaw pitch roll parent child period_ms -->
   <node pkg="tf" type="static_transform_publisher" name="mid360_static_tf"
@@ -82,5 +82,7 @@
          value="$(find fyp_jackal_navigation)/params/costmap_common_real.yaml"/>
     <arg name="common_params_2d"
          value="$(find fyp_jackal_navigation)/params/costmap_common_2donly_real.yaml"/>
+    <arg name="local_costmap_params"
+         value="$(find fyp_jackal_navigation)/params/local_costmap_real.yaml"/>
   </include>
 </launch>

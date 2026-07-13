@@ -76,25 +76,40 @@ at OPEN floor with a wall a few metres away:
   bare floor a few metres ahead. Adjust `mid360_pitch:=` in steps of ±0.02
   (rad) until the floor is clean. Current default 0.7854 (45°).
 
-## 4. Navigate
+## 4. Navigate — the two-terminal workflow
+
+**Terminal 1 — SSH into the robot** (runs navigation):
 
 ```bash
-roslaunch fyp_jackal_navigation nav_real.launch          # 3D fusion ON
-roslaunch fyp_jackal_navigation nav_real.launch use_mid360:=false   # 2D-only baseline
+ssh administrator@192.168.1.124
+roslaunch fyp_jackal_navigation nav_real.launch                     # 3D fusion ON
+# or: roslaunch fyp_jackal_navigation nav_real.launch use_mid360:=false   # 2D-only baseline
 ```
 
-RViz from the VM/laptop on the same WiFi:
+**Terminal 2 — on the VM** (runs RViz). IMPORTANT: plain `rviz` opens the
+DEFAULT config with none of our displays — always load ours via
+`view.launch` (keep the repo on the VM up to date with `git pull` so the
+RViz config matches):
 
 ```bash
 export ROS_MASTER_URI=http://192.168.1.124:11311   # robot's WiFi IP
-export ROS_IP=<your_vm_ip>
+export ROS_IP=<your_vm_ip>                          # e.g. 192.168.1.109
 roslaunch fyp_jackal_navigation view.launch
 ```
 
-(Enable the "... Real" displays, disable the sim ones. If TF complains about
-time, sync clocks: `sudo apt install chrony` on both.)
+(Equivalent: `rviz -d ~/fyp_ws/src/fyp_jackal/fyp_jackal_navigation/rviz/fyp_nav.rviz`.
+Enable the "... Real" displays, disable the sim ones. If TF complains about
+time, sync clocks: `sudo apt install chrony` on both machines.)
 
 **2D Pose Estimate** on the map first, small test goal second, then the tasks.
+
+Known harmless warnings on this robot:
+- `TF_OLD_DATA ... frame livox_frame ... unknown_publisher`: another system
+  on the robot publishes that frame with stale stamps. Navigation does not
+  use it (the mid360_filter node replaces TF), so ignore.
+- The EKF odometry drifts in z (observed −0.22 m). The local costmap uses
+  the 2D ObstacleLayer (`local_costmap_real.yaml`) exactly so that this
+  cannot break obstacle marking or clearing.
 
 ## 5. Task physics with YOUR measurements — read this
 
