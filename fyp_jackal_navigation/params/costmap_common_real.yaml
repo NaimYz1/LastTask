@@ -31,22 +31,21 @@ obstacles_layer:
     raytrace_range: 6.5
     min_obstacle_height: -1.0
     max_obstacle_height: 1.0
-  # NOTE on heights: the costmap measures z in the odom/map frame, whose
-  # origin is at base_link's STARTING height (~0.065 m above the floor).
-  # So floor = -0.065, robot top (0.50) = 0.435, bridge deck (0.75) = 0.685.
-  # min 0.18 / max 0.55 leaves margin on both sides against pitch error:
-  # a 2-3 deg TF error moves points by ~0.05 m per metre of distance, which
-  # is also why obstacle_range is limited to 4 m for this source.
+  # The mid360_filter node (started by nav_real.launch) already applied the
+  # obstacle height band relative to base_link and publishes the cloud IN
+  # base_link frame - no TF lookup of livox_frame, so navigation is immune
+  # to the other system on this robot that also moves that frame, and to
+  # odometry z-drift. The costmap's own height filter is left wide open.
   mid360:
-    sensor_frame: livox_frame
+    sensor_frame: base_link
     data_type: PointCloud2
-    topic: livox/lidar
+    topic: mid360/obstacles
     marking: true
     clearing: true
     obstacle_range: 4.0
     raytrace_range: 5.0
-    min_obstacle_height: 0.18
-    max_obstacle_height: 0.55
+    min_obstacle_height: -10.0
+    max_obstacle_height: 10.0
 
 inflater_layer:
   inflation_radius: 0.25

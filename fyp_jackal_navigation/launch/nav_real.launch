@@ -12,10 +12,16 @@
        map_file:=/path/to/other_map.yaml for a different room. -->
   <arg name="map_file" default="$(find fyp_jackal_navigation)/maps/myroom.yaml"/>
   <arg name="use_mid360" default="true"/>
-  <!-- Heights are in the odom/map frame (z=0 at base_link start height,
-       ~0.065 m above floor). Robot top = 0.435 there; the 0.75 m bridge
-       deck = 0.685. 0.55 sits between them with margin for TF pitch error. -->
-  <arg name="clearance" default="0.55"/>
+  <!-- The obstacle height band is applied by the mid360_filter node,
+       RELATIVE TO base_link (which sits ~0.065 m above the floor):
+         band_min_z 0.12 -> ignore below ~0.19 m above floor (ground noise)
+         band_max_z 0.50 -> ignore above ~0.57 m above floor (robot ~0.50 m;
+                            the 0.75 m bridge deck stays above the band)
+       clearance stays 10.0 here: the costmap-side height filter is
+       deliberately wide open, the filter node is the real gate. -->
+  <arg name="band_min_z" default="0.12"/>
+  <arg name="band_max_z" default="0.50"/>
+  <arg name="clearance" default="10.0"/>
   <arg name="scan_topic" default="scan"/>
 
   <!-- Fallback mount values, only used with publish_mid360_tf:=true.
@@ -51,6 +57,17 @@
   <node pkg="tf" type="static_transform_publisher" name="laser_static_tf"
         args="$(arg laser_x) 0 $(arg laser_z) 0 0 0 base_link laser 50"
         if="$(arg publish_laser_tf)"/>
+
+  <!-- TF-free Mid-360 obstacle filter: raw /livox/lidar -> height-banded
+       /mid360/obstacles in base_link frame (see scripts/mid360_filter.py). -->
+  <node pkg="fyp_jackal_navigation" type="mid360_filter.py" name="mid360_filter" output="screen">
+    <param name="mount_x" value="$(arg mid360_x)"/>
+    <param name="mount_y" value="$(arg mid360_y)"/>
+    <param name="mount_z" value="$(arg mid360_z)"/>
+    <param name="mount_pitch" value="$(arg mid360_pitch)"/>
+    <param name="min_z" value="$(arg band_min_z)"/>
+    <param name="max_z" value="$(arg band_max_z)"/>
+  </node>
 
   <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)"/>
 

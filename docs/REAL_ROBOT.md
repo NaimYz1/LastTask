@@ -54,25 +54,27 @@ echo "source ~/fyp_ws/devel/setup.bash" >> ~/.bashrc
 The `myroom` map is included in the repo
 (`fyp_jackal_navigation/maps/myroom.yaml`), so nothing to copy.
 
-## 3. TF calibration (10 minutes, once)
+## 3. How the Mid-360 reaches the costmap (and why)
 
-`nav_real.launch` publishes `base_link -> livox_frame` from measured values.
-Already set: `mid360_z 0.39` (0.455 − 0.065 base_link height), pitch 0.6671
-(38.22°). Still to measure: **the forward offset** — measure the horizontal
-distance from the dome centre to the FRONT edge of the top plate; then
-`mid360_x = 0.21 − that distance` (plate front edge ≈ 0.21 m ahead of robot
-centre). A few cm of error is acceptable.
+Another system on this robot also publishes a pose for `livox_frame`
+(observed: the costmap once saw the sensor at z = −0.14, below the floor,
+4.5 m away from the robot — TF was flip-flopping between publishers, and
+phantom obstacles walled off the whole map). Navigation is therefore
+**TF-free** for this sensor: the `mid360_filter` node (started by
+`nav_real.launch`) applies the fixed mount transform itself (launch args
+`mid360_x/y/z/pitch`), keeps only points in the obstacle band
+(`band_min_z`/`band_max_z`, relative to base_link), and publishes
+`/mid360/obstacles` in base_link frame. The costmap consumes that.
 
-**Verification (do this before navigating):**
+**Pitch calibration (do this before navigating):** in RViz enable the
+"Mid360 Obstacles (filtered, real)" display (magenta) and point the robot
+at OPEN floor with a wall a few metres away:
 
-```bash
-roslaunch fyp_jackal_navigation nav_real.launch
-```
-
-In RViz (fixed frame `base_link`), enable the "Mid360 Real (PointCloud2)"
-display: the floor must be a flat sheet of points near z = 0 (colour-coded
-blue/low), walls vertical. If the floor tilts up/down ahead of the robot,
-adjust `mid360_pitch` by small steps (±0.02 rad) until flat.
+- Correct: magenta points only on the wall (0.19–0.57 m heights); the open
+  floor between robot and wall is EMPTY.
+- Pitch too small / too large: a carpet of magenta points appears on the
+  bare floor a few metres ahead. Adjust `mid360_pitch:=` in steps of ±0.02
+  (rad) until the floor is clean. Current default 0.7854 (45°).
 
 ## 4. Navigate
 
