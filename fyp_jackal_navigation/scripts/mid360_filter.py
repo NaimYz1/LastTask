@@ -68,8 +68,15 @@ class Mid360Filter(object):
         # disk in the costmap for the whole accumulation window.
         self.min_hits = rospy.get_param('~min_hits', 3)
         self.cell = rospy.get_param('~density_cell', 0.05)
+        # Skid-steer yaw slips badly while rotating in place, and Livox
+        # frames captured mid-spin are internally smeared arcs. Above this
+        # yaw rate (rad/s) new frames are NOT added to the accumulator
+        # (the already-stored window stays valid - each frame is anchored
+        # to its own odometry pose).
+        self.max_spin = rospy.get_param('~max_spin_rate', 0.35)
         self.out_frame = rospy.get_param('~out_frame', 'base_link')
         odom_topic = rospy.get_param('~odom_topic', 'odometry/filtered')
+        self.last_wz = 0.0
 
         c, s = np.cos(pitch), np.sin(pitch)
         # rows of R^T; p_base = p_sensor . rot_t + trans
@@ -100,6 +107,7 @@ class Mid360Filter(object):
         self.odom_t.append(msg.header.stamp.to_sec())
         self.odom_r.append(quat_to_rot(q.x, q.y, q.z, q.w))
         self.odom_p.append(np.array([p.x, p.y, p.z]))
+        self.last_wz = msg.twist.twist.angular.z
 
     def pose_at(self, t):
         """Odometry pose (R, p) closest in time to t, or None."""
@@ -148,12 +156,17 @@ class Mid360Filter(object):
             return
 
         # store in odom frame (pose matched to the cloud's own stamp),
-        # output the whole window in the base frame at this stamp
+        # output the whole window in the base frame at this stamp.
+        # Frames captured while spinning fast are not stored.
         rot, trans = pose
-        self.buffer.append((stamp, base.dot(rot.T) + trans))
+        if abs(self.last_wz) <= self.max_spin:
+            self.buffer.append((stamp, base.dot(rot.T) + trans))
         cutoff = stamp - self.window
         while self.buffer and self.buffer[0][0] < cutoff:
             self.buffer.popleft()
+        if not self.buffer:
+            self.publish(msg, np.zeros((0, 3)))
+            return
         merged_odom = np.vstack([b[1] for b in self.buffer])
         merged_base = (merged_odom - trans).dot(rot)   # == R^T . (p - t)
 

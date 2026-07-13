@@ -15,6 +15,23 @@
     <param name="controller_frequency" value="10.0"/>
     <param name="planner_frequency" value="2.0"/>
 
+    <!-- Recovery ladder. The stock behaviors only clear marks FAR from the
+         robot (3.0 m / 1.84 m), so phantom marks pinching the robot at
+         close range survive every recovery and the goal aborts - until a
+         restart wipes the costmaps and the same goal suddenly works. The
+         extra full_reset stage clears BOTH costmaps completely (back to
+         the static map); real obstacles are re-marked by the sensors
+         within a frame or two, phantom residue is gone for good. -->
+    <rosparam>
+      recovery_behaviors:
+        - {name: conservative_reset, type: clear_costmap_recovery/ClearCostmapRecovery}
+        - {name: rotate_recovery, type: rotate_recovery/RotateRecovery}
+        - {name: full_reset, type: clear_costmap_recovery/ClearCostmapRecovery}
+        - {name: rotate_recovery2, type: rotate_recovery/RotateRecovery}
+      conservative_reset: {reset_distance: 2.0}
+      full_reset: {reset_distance: 0.0, force_updating: true}
+    </rosparam>
+
     <rosparam file="$(arg common_params)"
               command="load" ns="global_costmap" if="$(arg use_mid360)"/>
     <rosparam file="$(arg common_params)"
