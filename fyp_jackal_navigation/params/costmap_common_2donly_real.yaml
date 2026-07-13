@@ -21,5 +21,5 @@ obstacles_layer:
     max_obstacle_height: 1.0
 
 inflater_layer:
-  inflation_radius: 0.25
-  cost_scaling_factor: 5.0
+  inflation_radius: 0.22
+  cost_scaling_factor: 10.0

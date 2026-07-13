@@ -47,6 +47,11 @@ obstacles_layer:
     min_obstacle_height: -10.0
     max_obstacle_height: 10.0
 
+# inflation_radius 0.22 is the practical minimum: the inscribed radius of
+# the padded footprint is ~0.21 (the robot's own half-width) and inflation
+# must cover it, or the global planner plans paths the footprint check then
+# rejects. High cost_scaling makes the cost cushion beyond that decay fast,
+# so paths hug obstacles as closely as the geometry truly allows.
 inflater_layer:
-  inflation_radius: 0.25
-  cost_scaling_factor: 5.0
+  inflation_radius: 0.22
+  cost_scaling_factor: 10.0

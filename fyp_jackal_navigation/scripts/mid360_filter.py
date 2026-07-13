@@ -61,6 +61,13 @@ class Mid360Filter(object):
         self.min_range = rospy.get_param('~min_range', 0.30)
         self.max_range = rospy.get_param('~max_range', 4.5)
         self.window = rospy.get_param('~accumulate', 1.5)   # seconds, 0 = off
+        # Density filter over the accumulated window: keep a point only if
+        # its 5 cm cell collected at least this many hits. Real obstacles
+        # (even 1.5 cm tripod legs) rack up dozens of hits; single stray
+        # noise returns would otherwise each cost a robot-half-width lethal
+        # disk in the costmap for the whole accumulation window.
+        self.min_hits = rospy.get_param('~min_hits', 3)
+        self.cell = rospy.get_param('~density_cell', 0.05)
         self.out_frame = rospy.get_param('~out_frame', 'base_link')
         odom_topic = rospy.get_param('~odom_topic', 'odometry/filtered')
 
@@ -149,6 +156,15 @@ class Mid360Filter(object):
             self.buffer.popleft()
         merged_odom = np.vstack([b[1] for b in self.buffer])
         merged_base = (merged_odom - trans).dot(rot)   # == R^T . (p - t)
+
+        # density filter: drop isolated points (sensor noise)
+        if self.min_hits > 1 and merged_base.shape[0]:
+            cells = np.floor(merged_base[:, :2] / self.cell).astype(np.int64)
+            key = cells[:, 0] * 1000003 + cells[:, 1]
+            _, inverse, counts = np.unique(key, return_inverse=True,
+                                           return_counts=True)
+            merged_base = merged_base[counts[inverse] >= self.min_hits]
+
         self.publish(msg, merged_base)
 
     def publish(self, msg, pts):
