@@ -32,6 +32,11 @@ rosrun tf tf_echo base_link laser
 
 rostopic hz /scan          # ~40 Hz
 rostopic hz /livox/lidar   # ~10 Hz
+
+rosrun tf tf_echo base_link livox_frame
+# Run WITHOUT nav_real running. If a transform already exists, the robot's
+# own bringup publishes it -> launch nav_real with publish_mid360_tf:=false
+# so two publishers don't fight over the frame.
 ```
 
 ## 2. Get the code onto the robot
@@ -103,7 +108,25 @@ time, sync clocks: `sudo apt install chrony` on both.)
   specifically, shorten the tripod so the box bottom sits below ~0.55 m.
 - Safety: first bridge run with a hand on the e-stop; max speed is 0.5 m/s.
 
-## 6. Troubleshooting
+## 6. Why the cloud looks "cut off" above ~0.75 m (it is not a bug)
+
+The Mid-360's vertical FOV is −7°..+52° relative to itself; tilted 38.22°
+nose-down that is **−45°..+14° relative to the floor**. From 0.455 m height,
+the highest visible point at distance d is `0.455 + d·tan(14°)`:
+~0.70 m at 1 m, ~0.95 m at 2 m, ~1.20 m at 3 m. The sensor sees the whole
+bridge **from 2–3 m away**; up close, the top exits the FOV upward — by
+design, in exchange for good ground coverage. For navigation it is
+irrelevant: the costmap only uses points below the 0.60 m clearance.
+For "whole bridge" screenshots, set the RViz cloud Decay Time to ~5 s and
+approach slowly from 3 m.
+
+**Do NOT feed `amr_system`'s `projection.launch` scans into navigation.**
+Its obstacle converter flattens everything up to `max_height: 1.5` into a 2D
+scan — the bridge deck becomes a wall and the robot will refuse to drive
+under. Our `nav_real.launch` consumes `/livox/lidar` directly with proper
+height filtering; no converter is needed.
+
+## 7. Troubleshooting
 
 | Symptom | Fix |
 |---|---|
