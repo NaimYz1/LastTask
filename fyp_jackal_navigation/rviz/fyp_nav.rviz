@@ -111,6 +111,32 @@ Visualization Manager:
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
+    - Alpha: 0.7
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 1.5
+        Min Value: 0
+        Value: false
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz/PointCloud2
+      Color: 255; 255; 255
+      Color Transformer: AxisColor
+      Decay Time: 0.5
+      Enabled: false
+      Max Color: 255; 255; 255
+      Min Color: 0; 0; 0
+      Name: Mid360 Real (PointCloud2)
+      Position Transformer: XYZ
+      Queue Size: 10
+      Selectable: true
+      Size (m): 0.02
+      Style: Flat Squares
+      Topic: /livox/lidar
+      Unreliable: false
+      Use Fixed Frame: true
+      Use rainbow: true
+      Value: false
     - Alpha: 1
       Buffer Length: 1
       Class: rviz/Path

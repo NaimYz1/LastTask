@@ -1,0 +1,224 @@
+<?xml version="1.0"?>
+<!--
+  FYP arena, LOW BRIDGE variant - for demonstrating the 2D-lidar failure.
+
+  Identical to fyp_arena.world except the bridge: the deck underside is at
+  0.50 m, which is ABOVE the Hokuyo scan plane (~0.37 m, so the 2D lidar
+  still sees nothing) but BELOW the top of the Mid-360 tower (~0.60 m).
+
+    * 2D-only navigation (use_mid360:=false): the doorway looks free, the
+      robot drives in and the sensor tower physically hits the deck.
+    * With the Mid-360 (clearance 0.70 > 0.50): the deck marks as an
+      obstacle, the doorway is blocked, and move_base correctly refuses to
+      plan through - the safe behaviour.
+
+  Launch with:  roslaunch fyp_jackal_gazebo fyp_world.launch low_bridge:=true
+-->
+<sdf version="1.6">
+  <world name="fyp_arena_low_bridge">
+
+    <include>
+      <uri>model://sun</uri>
+    </include>
+    <include>
+      <uri>model://ground_plane</uri>
+    </include>
+
+    <scene>
+      <shadows>false</shadows>
+    </scene>
+
+    <!-- ==================== outer walls (in map) ==================== -->
+    <model name="arena_walls">
+      <static>true</static>
+      <link name="link">
+        <collision name="north_col">
+          <pose>0 5.075 0.25 0 0 0</pose>
+          <geometry><box><size>12.0 0.15 0.5</size></box></geometry>
+        </collision>
+        <visual name="north_vis">
+          <pose>0 5.075 0.25 0 0 0</pose>
+          <geometry><box><size>12.0 0.15 0.5</size></box></geometry>
+          <material><script><uri>file://media/materials/scripts/gazebo.material</uri><name>Gazebo/Grey</name></script></material>
+        </visual>
+        <collision name="south_col">
+          <pose>0 -5.075 0.25 0 0 0</pose>
+          <geometry><box><size>12.0 0.15 0.5</size></box></geometry>
+        </collision>
+        <visual name="south_vis">
+          <pose>0 -5.075 0.25 0 0 0</pose>
+          <geometry><box><size>12.0 0.15 0.5</size></box></geometry>
+          <material><script><uri>file://media/materials/scripts/gazebo.material</uri><name>Gazebo/Grey</name></script></material>
+        </visual>
+        <collision name="east_col">
+          <pose>6.075 0 0.25 0 0 0</pose>
+          <geometry><box><size>0.15 10.3 0.5</size></box></geometry>
+        </collision>
+        <visual name="east_vis">
+          <pose>6.075 0 0.25 0 0 0</pose>
+          <geometry><box><size>0.15 10.3 0.5</size></box></geometry>
+          <material><script><uri>file://media/materials/scripts/gazebo.material</uri><name>Gazebo/Grey</name></script></material>
+        </visual>
+        <collision name="west_col">
+          <pose>-6.075 0 0.25 0 0 0</pose>
+          <geometry><box><size>0.15 10.3 0.5</size></box></geometry>
+        </collision>
+        <visual name="west_vis">
+          <pose>-6.075 0 0.25 0 0 0</pose>
+          <geometry><box><size>0.15 10.3 0.5</size></box></geometry>
+          <material><script><uri>file://media/materials/scripts/gazebo.material</uri><name>Gazebo/Grey</name></script></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ============ divider wall with doorway (in map) ============== -->
+    <model name="divider_wall">
+      <static>true</static>
+      <link name="link">
+        <collision name="north_seg_col">
+          <pose>2.5 3.05 0.25 0 0 0</pose>
+          <geometry><box><size>0.15 3.9 0.5</size></box></geometry>
+        </collision>
+        <visual name="north_seg_vis">
+          <pose>2.5 3.05 0.25 0 0 0</pose>
+          <geometry><box><size>0.15 3.9 0.5</size></box></geometry>
+          <material><script><uri>file://media/materials/scripts/gazebo.material</uri><name>Gazebo/Grey</name></script></material>
+        </visual>
+        <collision name="south_seg_col">
+          <pose>2.5 -3.05 0.25 0 0 0</pose>
+          <geometry><box><size>0.15 3.9 0.5</size></box></geometry>
+        </collision>
+        <visual name="south_seg_vis">
+          <pose>2.5 -3.05 0.25 0 0 0</pose>
+          <geometry><box><size>0.15 3.9 0.5</size></box></geometry>
+          <material><script><uri>file://media/materials/scripts/gazebo.material</uri><name>Gazebo/Grey</name></script></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ================ landmark boxes (in map) ===================== -->
+    <model name="landmark_1">
+      <static>true</static>
+      <pose>-2.0 3.0 0.25 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>0.5 0.5 0.5</size></box></geometry></collision>
+        <visual name="vis">
+          <geometry><box><size>0.5 0.5 0.5</size></box></geometry>
+          <material><script><uri>file://media/materials/scripts/gazebo.material</uri><name>Gazebo/Wood</name></script></material>
+        </visual>
+      </link>
+    </model>
+    <model name="landmark_2">
+      <static>true</static>
+      <pose>-4.5 -3.5 0.25 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>0.5 0.5 0.5</size></box></geometry></collision>
+        <visual name="vis">
+          <geometry><box><size>0.5 0.5 0.5</size></box></geometry>
+          <material><script><uri>file://media/materials/scripts/gazebo.material</uri><name>Gazebo/Wood</name></script></material>
+        </visual>
+      </link>
+    </model>
+    <model name="landmark_3">
+      <static>true</static>
+      <pose>4.5 3.5 0.25 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>0.5 0.5 0.5</size></box></geometry></collision>
+        <visual name="vis">
+          <geometry><box><size>0.5 0.5 0.5</size></box></geometry>
+          <material><script><uri>file://media/materials/scripts/gazebo.material</uri><name>Gazebo/Wood</name></script></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ============ LOW bridge (NOT in map) ========================= -->
+    <!-- Deck underside 0.50 m: above the 2D scan plane, below the robot's
+         Mid-360 tower. Opening still 1.5 m wide. -->
+    <model name="bridge">
+      <static>true</static>
+      <link name="link">
+        <collision name="support_left_col">
+          <pose>2.5 0.825 0.25 0 0 0</pose>
+          <geometry><box><size>1.0 0.15 0.50</size></box></geometry>
+        </collision>
+        <visual name="support_left_vis">
+          <pose>2.5 0.825 0.25 0 0 0</pose>
+          <geometry><box><size>1.0 0.15 0.50</size></box></geometry>
+          <material><script><uri>file://media/materials/scripts/gazebo.material</uri><name>Gazebo/Bricks</name></script></material>
+        </visual>
+        <collision name="support_right_col">
+          <pose>2.5 -0.825 0.25 0 0 0</pose>
+          <geometry><box><size>1.0 0.15 0.50</size></box></geometry>
+        </collision>
+        <visual name="support_right_vis">
+          <pose>2.5 -0.825 0.25 0 0 0</pose>
+          <geometry><box><size>1.0 0.15 0.50</size></box></geometry>
+          <material><script><uri>file://media/materials/scripts/gazebo.material</uri><name>Gazebo/Bricks</name></script></material>
+        </visual>
+        <collision name="deck_col">
+          <pose>2.5 0 0.575 0 0 0</pose>
+          <geometry><box><size>1.0 1.95 0.15</size></box></geometry>
+        </collision>
+        <visual name="deck_vis">
+          <pose>2.5 0 0.575 0 0 0</pose>
+          <geometry><box><size>1.0 1.95 0.15</size></box></geometry>
+          <material><script><uri>file://media/materials/scripts/gazebo.material</uri><name>Gazebo/Wood</name></script></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ================== tripod (NOT in map) ======================= -->
+    <model name="tripod">
+      <static>true</static>
+      <pose>-3.0 0 0 0 0 0</pose>
+      <link name="link">
+        <collision name="leg1_col">
+          <pose>0.13 0 0.20 0 -0.576 0</pose>
+          <geometry><cylinder><radius>0.012</radius><length>0.48</length></cylinder></geometry>
+        </collision>
+        <visual name="leg1_vis">
+          <pose>0.13 0 0.20 0 -0.576 0</pose>
+          <geometry><cylinder><radius>0.012</radius><length>0.48</length></cylinder></geometry>
+          <material><script><uri>file://media/materials/scripts/gazebo.material</uri><name>Gazebo/DarkGrey</name></script></material>
+        </visual>
+        <collision name="leg2_col">
+          <pose>-0.065 0.11258 0.20 0 -0.576 2.0944</pose>
+          <geometry><cylinder><radius>0.012</radius><length>0.48</length></cylinder></geometry>
+        </collision>
+        <visual name="leg2_vis">
+          <pose>-0.065 0.11258 0.20 0 -0.576 2.0944</pose>
+          <geometry><cylinder><radius>0.012</radius><length>0.48</length></cylinder></geometry>
+          <material><script><uri>file://media/materials/scripts/gazebo.material</uri><name>Gazebo/DarkGrey</name></script></material>
+        </visual>
+        <collision name="leg3_col">
+          <pose>-0.065 -0.11258 0.20 0 -0.576 4.18879</pose>
+          <geometry><cylinder><radius>0.012</radius><length>0.48</length></cylinder></geometry>
+        </collision>
+        <visual name="leg3_vis">
+          <pose>-0.065 -0.11258 0.20 0 -0.576 4.18879</pose>
+          <geometry><cylinder><radius>0.012</radius><length>0.48</length></cylinder></geometry>
+          <material><script><uri>file://media/materials/scripts/gazebo.material</uri><name>Gazebo/DarkGrey</name></script></material>
+        </visual>
+        <collision name="stick_col">
+          <pose>0 0 0.43 0 0 0</pose>
+          <geometry><cylinder><radius>0.010</radius><length>0.14</length></cylinder></geometry>
+        </collision>
+        <visual name="stick_vis">
+          <pose>0 0 0.43 0 0 0</pose>
+          <geometry><cylinder><radius>0.010</radius><length>0.14</length></cylinder></geometry>
+          <material><script><uri>file://media/materials/scripts/gazebo.material</uri><name>Gazebo/DarkGrey</name></script></material>
+        </visual>
+        <collision name="box_col">
+          <pose>0 0 0.53 0 0 0</pose>
+          <geometry><box><size>0.28 0.28 0.22</size></box></geometry>
+        </collision>
+        <visual name="box_vis">
+          <pose>0 0 0.53 0 0 0</pose>
+          <geometry><box><size>0.28 0.28 0.22</size></box></geometry>
+          <material><script><uri>file://media/materials/scripts/gazebo.material</uri><name>Gazebo/Orange</name></script></material>
+        </visual>
+      </link>
+    </model>
+
+  </world>
+</sdf>

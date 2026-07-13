@@ -1,6 +1,9 @@
 <launch>
   <arg name="use_mid360" default="true"/>
   <arg name="clearance" default="0.70"/>
+  <!-- Which "common" costmap file to use when use_mid360 is true
+       (sim default here; nav_real.launch passes the real-robot variant). -->
+  <arg name="common_params" default="$(find fyp_jackal_navigation)/params/costmap_common.yaml"/>
 
   <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
     <param name="base_global_planner" value="navfn/NavfnROS"/>
@@ -8,9 +11,9 @@
     <param name="controller_frequency" value="10.0"/>
     <param name="planner_frequency" value="2.0"/>
 
-    <rosparam file="$(find fyp_jackal_navigation)/params/costmap_common.yaml"
+    <rosparam file="$(arg common_params)"
               command="load" ns="global_costmap" if="$(arg use_mid360)"/>
-    <rosparam file="$(find fyp_jackal_navigation)/params/costmap_common.yaml"
+    <rosparam file="$(arg common_params)"
               command="load" ns="local_costmap" if="$(arg use_mid360)"/>
     <rosparam file="$(find fyp_jackal_navigation)/params/costmap_common_2donly.yaml"
               command="load" ns="global_costmap" unless="$(arg use_mid360)"/>

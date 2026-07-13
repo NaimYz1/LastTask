@@ -1,0 +1,42 @@
+# REAL ROBOT variant of costmap_common.yaml.
+# Differences from simulation:
+#   * mid360 source is the livox_ros_driver2 output: PointCloud2 on
+#     /livox/lidar in frame livox_frame (a static TF publishes
+#     base_link -> livox_frame in nav_real.launch).
+#   * min_obstacle_height raised to 0.15: real floors are not perfectly
+#     flat and the mount calibration is not perfect, so give the ground
+#     more margin before it marks as an obstacle.
+#
+# If your real Hokuyo publishes on a different topic/frame than the
+# Clearpath default (front/scan, front_laser), edit the scan block below.
+
+footprint: [[-0.21, -0.165], [-0.21, 0.165], [0.21, 0.165], [0.21, -0.165]]
+footprint_padding: 0.08
+transform_tolerance: 0.5
+
+obstacles_layer:
+  observation_sources: scan mid360
+  scan:
+    sensor_frame: front_laser
+    data_type: LaserScan
+    topic: front/scan
+    marking: true
+    clearing: true
+    obstacle_range: 5.5
+    raytrace_range: 6.5
+    min_obstacle_height: -1.0
+    max_obstacle_height: 1.0
+  mid360:
+    sensor_frame: livox_frame
+    data_type: PointCloud2
+    topic: livox/lidar
+    marking: true
+    clearing: true
+    obstacle_range: 5.5
+    raytrace_range: 6.5
+    min_obstacle_height: 0.15
+    max_obstacle_height: 0.70
+
+inflater_layer:
+  inflation_radius: 0.30
+  cost_scaling_factor: 5.0

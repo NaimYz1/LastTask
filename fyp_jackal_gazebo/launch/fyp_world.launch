@@ -1,7 +1,12 @@
 <launch>
   <!-- Gazebo with the FYP arena (bridge + tripod) and the sensor-equipped
        Jackal spawned at the origin, facing the bridge. -->
-  <arg name="world_name" default="$(find fyp_jackal_gazebo)/worlds/fyp_arena.world"/>
+  <!-- low_bridge:=true loads the variant where the bridge deck (0.50 m) is
+       below the robot's sensor tower: 2D-only navigation crashes into it,
+       3D navigation correctly refuses to enter. -->
+  <arg name="low_bridge" default="false"/>
+  <arg name="world_name"
+       default="$(eval find('fyp_jackal_gazebo') + ('/worlds/fyp_arena_low_bridge.world' if arg('low_bridge') else '/worlds/fyp_arena.world'))"/>
   <arg name="gui" default="true"/>
   <arg name="headless" default="false"/>
 

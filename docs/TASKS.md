@@ -31,6 +31,25 @@ Evidence for the report:
   plan (or plans forever). This proves that naively adding 3D points to a
   costmap is wrong, and that the height filter is the fix.
 
+### Low-bridge crash demo (the strongest evidence)
+
+```bash
+roslaunch fyp_jackal_gazebo fyp_world.launch low_bridge:=true
+```
+
+This world's bridge deck is at **0.50 m** — above the Hokuyo scan plane
+(0.37 m) but below the Mid-360 tower (0.60 m):
+
+- `nav.launch use_mid360:=false` + goal (5, 0): the doorway looks free to
+  the 2D lidar, the robot drives in, and the sensor tower **physically hits
+  the deck** in Gazebo. This is the failure that motivates the whole FYP.
+- `nav.launch` (3D on): the deck is below the 0.70 m clearance, so it marks
+  as an obstacle, the doorway is blocked, and move_base refuses to send the
+  robot under — the correct, safe behaviour.
+
+Record both runs (screen capture + `rosbag record /front/scan /mid360/points
+/move_base/local_costmap/costmap /tf /tf_static`) for the report.
+
 ## Task 2 — Avoid the tripod
 
 Tripod at (-3, 0): three 12 mm legs, thin centre stick, and a
@@ -76,17 +95,8 @@ in the world file so the sim predicts the real behaviour).
 
 ## Real-robot notes (phase 2, after sim works)
 
-- The Mid-360 publishes via `livox_ros_driver`/`livox_ros_driver2` as
-  **PointCloud2** — change the `mid360` source in `costmap_common.yaml`:
-  `data_type: PointCloud2`, `topic:` the driver's topic, `sensor_frame:` the
-  driver's TF frame (make sure a static TF from the robot to that frame
-  matches the measured mount).
-- The Mid-360's non-repetitive pattern is sparse per single message —
-  if marking looks thin, aggregate a few scans or lower the costmap
-  `update_frequency` gap by feeding with a small relay that accumulates
-  2–3 clouds. (In sim this is not needed.)
-- Keep AMCL on the Hokuyo exactly as in sim; your existing real-world map
-  keeps working.
-- On the floor, z=0 in the map frame is the floor **only if** the map/odom
-  frames start on the floor (they do for Jackal bringup). If the real
-  Mid-360 marks the floor, raise `min_obstacle_height` slightly (0.10–0.15).
+Full step-by-step guide: [REAL_ROBOT.md](REAL_ROBOT.md). In short: install
+Livox-SDK2 + livox_ros_driver2 on the onboard PC, configure the lidar's
+Ethernet IPs, measure the mount and run
+`roslaunch fyp_jackal_navigation nav_real.launch map_file:=<your map>` —
+it reuses these exact configs with the real driver's PointCloud2 topic.
