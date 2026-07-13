@@ -153,7 +153,8 @@ height filtering; no converter is needed.
 | Symptom | Fix |
 |---|---|
 | Floor ahead marks as obstacle while driving | Raise `mid360/min_obstacle_height` 0.15 → 0.20; re-check pitch calibration. |
-| Robot ignores the tripod legs until close | Marks accumulate over ~1 s of Mid-360 pattern; approach slower, or ask Claude for a cloud-accumulator node. |
+| Robot clips thin obstacles (tripod legs, stool poles) | The filter node accumulates 1.5 s of odometry-compensated points precisely for this; raise `accumulate:=2.5` for even stickier marks (at the cost of slower clearing of moving obstacles). |
+| Robot clips LOW structures (stool star-base, low boxes) | Lower `band_min_z` (default 0.05 = ~0.12 m above floor). If lowering further, watch /mid360/obstacles for floor false-positives. |
 | AMCL lost / jumps | Re-set 2D Pose Estimate; check the map matches the room's current furniture. |
 | move_base won't enter the bridge | Costmap too fat for the 1.0 m opening: lower `footprint_padding` / `inflation_radius` slightly. |
 | No `map -> odom` TF | AMCL gets no scans: check `/scan` and that `scan_topic` arg matches. |

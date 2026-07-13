@@ -14,13 +14,18 @@
   <arg name="use_mid360" default="true"/>
   <!-- The obstacle height band is applied by the mid360_filter node,
        RELATIVE TO base_link (which sits ~0.065 m above the floor):
-         band_min_z 0.12 -> ignore below ~0.19 m above floor (ground noise)
+         band_min_z 0.05 -> keep from ~0.12 m above floor (sees the low
+                            star-base of the bridge stool; safe against
+                            ground noise now that the pitch is measured)
          band_max_z 0.50 -> ignore above ~0.57 m above floor (robot ~0.50 m;
                             the 0.75 m bridge deck stays above the band)
+       accumulate: seconds of ego-motion-compensated point history, so thin
+       obstacles (tripod legs) stay solidly marked against raytrace clearing.
        clearance stays 10.0 here: the costmap-side height filter is
        deliberately wide open, the filter node is the real gate. -->
-  <arg name="band_min_z" default="0.12"/>
+  <arg name="band_min_z" default="0.05"/>
   <arg name="band_max_z" default="0.50"/>
+  <arg name="accumulate" default="1.5"/>
   <arg name="clearance" default="10.0"/>
   <arg name="scan_topic" default="scan"/>
 
@@ -69,6 +74,7 @@
     <param name="mount_pitch" value="$(arg mid360_pitch)"/>
     <param name="min_z" value="$(arg band_min_z)"/>
     <param name="max_z" value="$(arg band_max_z)"/>
+    <param name="accumulate" value="$(arg accumulate)"/>
   </node>
 
   <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)"/>
