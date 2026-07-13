@@ -34,10 +34,11 @@ rostopic hz /scan          # ~40 Hz
 rostopic hz /livox/lidar   # ~10 Hz
 
 rosrun tf tf_echo base_link livox_frame
-# Checked 2026-07-13: the robot's own bringup already publishes this
-# (xyz [0.179, 0, 0.394], pitch 45.0 deg), so nav_real.launch defaults to
-# NOT publishing its own (publish_mid360_tf:=false). The actual tilt is
-# therefore ~45 deg, not the 38.22 deg design figure.
+# This transform is NOT part of the robot's permanent bringup - it only
+# exists while the peer's amr_system launch is running. nav_real.launch
+# therefore publishes it itself (publish_mid360_tf defaults to true) with
+# the same calibrated values: xyz [0.179, 0, 0.394], pitch 45.0 deg.
+# (Actual tilt is ~45 deg, not the 38.22 deg design figure.)
 ```
 
 ## 2. Get the code onto the robot

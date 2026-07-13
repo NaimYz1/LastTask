@@ -26,12 +26,13 @@
   <arg name="mid360_pitch" default="0.7854"/>
   <arg name="mid360_frame" default="livox_frame"/>
 
-  <!-- cpr-j100-0540's own bringup ALREADY publishes base_link->livox_frame
-       (checked 2026-07-13: xyz [0.179, 0, 0.394], pitch 45.0 deg — matches
-       the measured dome height of ~0.455 m above the floor). Publishing a
-       second, conflicting transform corrupts the cloud projection, so this
-       defaults to false. Only set true on a robot without its own livox TF. -->
-  <arg name="publish_mid360_tf" default="false"/>
+  <!-- The livox_frame TF is NOT part of the robot's permanent bringup — it
+       came from the peer's amr_system session (verified: it disappears when
+       their launch closes). So we publish it ourselves, using the same
+       calibrated values their setup used (xyz [0.179, 0, 0.394], pitch
+       45 deg, matching the measured dome height ~0.455 m above floor).
+       Identical values mean no conflict even if their stack also runs. -->
+  <arg name="publish_mid360_tf" default="true"/>
 
   <!-- static_transform_publisher args: x y z yaw pitch roll parent child period_ms -->
   <node pkg="tf" type="static_transform_publisher" name="mid360_static_tf"
