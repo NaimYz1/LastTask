@@ -1,25 +1,30 @@
-# REAL ROBOT variant of costmap_common.yaml.
-# Differences from simulation:
-#   * mid360 source is the livox_ros_driver2 output: PointCloud2 on
-#     /livox/lidar in frame livox_frame (a static TF publishes
-#     base_link -> livox_frame in nav_real.launch).
-#   * min_obstacle_height raised to 0.15: real floors are not perfectly
-#     flat and the mount calibration is not perfect, so give the ground
-#     more margin before it marks as an obstacle.
+# REAL ROBOT costmap configuration (Jackal cpr-j100-0540).
+# Matches what the robot actually publishes (checked 2026-07-13):
+#   * Hokuyo via urg_node:  topic /scan,        frame "laser"  (~0.35 m high)
+#   * Mid-360 via livox driver: topic /livox/lidar, frame "livox_frame"
+#     (PointCloud2; static TF base_link->livox_frame comes from nav_real.launch)
 #
-# If your real Hokuyo publishes on a different topic/frame than the
-# Clearpath default (front/scan, front_laser), edit the scan block below.
+# Robot height: ~0.50 m (top of the Mid-360). Clearance = 0.60 m:
+#   * real bridge deck at ~0.75 m  -> above 0.60 -> ignored -> drives under
+#   * anything lower than 0.60 m   -> marked     -> avoided
+#
+# The real bridge opening is only ~1.0 m wide (robot 0.43 m + sensors), so
+# footprint_padding and inflation_radius are tighter than in simulation --
+# with the sim values the inflated cost would nearly close the gap.
+#
+# min_obstacle_height 0.15: real floors are uneven and the mount calibration
+# is imperfect; raise to 0.20 if the floor still marks as an obstacle.
 
 footprint: [[-0.21, -0.165], [-0.21, 0.165], [0.21, 0.165], [0.21, -0.165]]
-footprint_padding: 0.08
+footprint_padding: 0.05
 transform_tolerance: 0.5
 
 obstacles_layer:
   observation_sources: scan mid360
   scan:
-    sensor_frame: front_laser
+    sensor_frame: laser
     data_type: LaserScan
-    topic: front/scan
+    topic: scan
     marking: true
     clearing: true
     obstacle_range: 5.5
@@ -35,8 +40,8 @@ obstacles_layer:
     obstacle_range: 5.5
     raytrace_range: 6.5
     min_obstacle_height: 0.15
-    max_obstacle_height: 0.70
+    max_obstacle_height: 0.60
 
 inflater_layer:
-  inflation_radius: 0.30
+  inflation_radius: 0.25
   cost_scaling_factor: 5.0

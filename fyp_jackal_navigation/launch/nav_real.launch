@@ -1,25 +1,32 @@
 <launch>
-  <!-- Navigation on the REAL Jackal.
-       Prerequisites (see docs/REAL_ROBOT.md):
-         * Jackal base running as usual (odom, base_link TF, cmd_vel)
-         * Hokuyo publishing /front/scan (your existing setup)
-         * livox_ros_driver2 publishing PointCloud2 on /livox/lidar
+  <!-- Navigation on the REAL Jackal (cpr-j100-0540).
+       What must already be running (comes up with the robot):
+         * Jackal base (odom, base_link TF, /cmd_vel via twist_mux)
+         * Hokuyo urg_node publishing /scan (frame "laser")
+         * Livox driver publishing PointCloud2 on /livox/lidar
        Run:
-         roslaunch fyp_jackal_navigation nav_real.launch map_file:=/path/to/your_map.yaml
-       Then set the initial pose in RViz (2D Pose Estimate) before sending goals. -->
-  <arg name="map_file"/>
-  <arg name="use_mid360" default="true"/>
-  <arg name="clearance" default="0.70"/>
+         roslaunch fyp_jackal_navigation nav_real.launch
+       Then in RViz: 2D Pose Estimate first, then 2D Nav Goal.
 
-  <!-- ============ Mid-360 mount, measured from base_link ============
-       UPDATE THESE after measuring the real robot!
-       z = height of the Mid-360 optical centre above base_link
-           (base_link sits ~0.065 m above the floor, so z here =
-            measured height above floor - 0.065).
-       pitch = nose-down tilt in RADIANS (38.22 deg = 0.6671). -->
-  <arg name="mid360_x" default="-0.02"/>
+       The myroom map ships with this package; override with
+       map_file:=/path/to/other_map.yaml for a different room. -->
+  <arg name="map_file" default="$(find fyp_jackal_navigation)/maps/myroom.yaml"/>
+  <arg name="use_mid360" default="true"/>
+  <!-- Robot is ~0.50 m tall (top of Mid-360); 0.60 = height + margin.
+       Real bridge deck is ~0.75 m, so it stays above this and is ignored. -->
+  <arg name="clearance" default="0.60"/>
+  <arg name="scan_topic" default="scan"/>
+
+  <!-- ============ Mid-360 mount, measured 2026-07-13 ============
+       Dome centre ~0.455 m above floor; base_link is ~0.065 m above the
+       floor -> z = 0.39. Forward offset (x) still to be measured: distance
+       from dome centre to the top plate's FRONT edge, then x = 0.21 - that
+       (the plate front edge is ~0.21 m ahead of robot centre).
+       pitch = nose-down tilt in RADIANS (38.22 deg = 0.6671, from the mount
+       design). Verify with the floor-flatness check in docs/REAL_ROBOT.md. -->
+  <arg name="mid360_x" default="0.0"/>
   <arg name="mid360_y" default="0.0"/>
-  <arg name="mid360_z" default="0.484"/>
+  <arg name="mid360_z" default="0.39"/>
   <arg name="mid360_pitch" default="0.6671"/>
   <arg name="mid360_frame" default="livox_frame"/>
 
@@ -29,14 +36,28 @@
               0 $(arg mid360_pitch) 0
               base_link $(arg mid360_frame) 50"/>
 
+  <!-- Only if the robot does NOT already publish base_link -> laser
+       (check with: rosrun tf tf_echo base_link laser). Hokuyo optical
+       centre ~0.355 m above floor -> z = 0.29. -->
+  <arg name="publish_laser_tf" default="false"/>
+  <arg name="laser_x" default="0.08"/>
+  <arg name="laser_z" default="0.29"/>
+  <node pkg="tf" type="static_transform_publisher" name="laser_static_tf"
+        args="$(arg laser_x) 0 $(arg laser_z) 0 0 0 base_link laser 50"
+        if="$(arg publish_laser_tf)"/>
+
   <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)"/>
 
-  <include file="$(find fyp_jackal_navigation)/launch/include/amcl.launch"/>
+  <include file="$(find fyp_jackal_navigation)/launch/include/amcl.launch">
+    <arg name="scan_topic" value="$(arg scan_topic)"/>
+  </include>
 
   <include file="$(find fyp_jackal_navigation)/launch/include/move_base.launch">
     <arg name="use_mid360" value="$(arg use_mid360)"/>
     <arg name="clearance" value="$(arg clearance)"/>
     <arg name="common_params"
          value="$(find fyp_jackal_navigation)/params/costmap_common_real.yaml"/>
+    <arg name="common_params_2d"
+         value="$(find fyp_jackal_navigation)/params/costmap_common_2donly_real.yaml"/>
   </include>
 </launch>

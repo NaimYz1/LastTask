@@ -1,0 +1,25 @@
+# REAL ROBOT, 2D lidar ONLY - the baseline / failure-demonstration mode.
+# Select with:  roslaunch fyp_jackal_navigation nav_real.launch use_mid360:=false
+# The Hokuyo scan plane is ~0.35 m: it cannot see the bridge deck overhead,
+# the box on the tripod, or (reliably) the thin tripod legs.
+
+footprint: [[-0.21, -0.165], [-0.21, 0.165], [0.21, 0.165], [0.21, -0.165]]
+footprint_padding: 0.05
+transform_tolerance: 0.5
+
+obstacles_layer:
+  observation_sources: scan
+  scan:
+    sensor_frame: laser
+    data_type: LaserScan
+    topic: scan
+    marking: true
+    clearing: true
+    obstacle_range: 5.5
+    raytrace_range: 6.5
+    min_obstacle_height: -1.0
+    max_obstacle_height: 1.0
+
+inflater_layer:
+  inflation_radius: 0.25
+  cost_scaling_factor: 5.0

@@ -1,20 +1,40 @@
-# Running on the Real Jackal
+# Running on the Real Jackal (cpr-j100-0540)
 
-Phase 2: same navigation stack, real sensors. Everything below happens on the
-**Jackal's onboard PC** (Ubuntu 18.04 / Melodic) unless stated otherwise.
+Status as checked on 2026-07-13: the robot already runs everything sensor-side.
+**No driver installation is needed.**
 
-## 0. What stays the same
+| What | Topic | Frame | Status |
+|---|---|---|---|
+| Jackal base (odom, EKF, twist_mux) | `/odometry/filtered`, `/cmd_vel` | `base_link` | running |
+| Hokuyo (urg_node) | `/scan` | `laser` | running |
+| Mid-360 (Livox driver) | `/livox/lidar` (+`/livox/imu`) | `livox_frame` (verify) | running |
 
-- Jackal base bring-up (odometry, `base_link` TF, `cmd_vel`) — your existing setup.
-- Hokuyo publishing `/front/scan` — your existing setup. Verify:
-  `rostopic hz /front/scan` and note the frame:
-  `rostopic echo /front/scan/header/frame_id -n 1`.
-  If it is not `front_laser`, edit the `scan:` block in
-  `params/costmap_common_real.yaml` to match.
-- AMCL + move_base configs — identical to sim, loaded by `nav_real.launch`.
-- Your existing map of the environment — passed as `map_file`.
+Robot geometry (measured 2026-07-13): Mid-360 dome centre ~0.455 m above the
+floor (tallest point ~0.50 m), Hokuyo optical centre ~0.355 m, tilt 38.22°
+nose-down (mount design value). Real bridge: ~0.75 m clearance × ~1.0 m wide.
+Real tripod: box top at ~1.07 m, legs ~0.26 m spread at the floor.
 
-## 1. Get the code onto the robot
+## 1. Pre-flight checks (5 commands on the robot)
+
+```bash
+rostopic type /livox/lidar
+# want: sensor_msgs/PointCloud2. If it says livox_ros_driver2/CustomMsg,
+# the driver's xfer_format must be changed to 0 (tell Claude).
+
+rostopic echo /livox/lidar -n 1 | grep frame_id
+# note the frame name; if it is not "livox_frame", pass
+# mid360_frame:=<name> to nav_real.launch.
+
+rosrun tf tf_echo base_link laser
+# If this prints a transform -> good, laser TF exists (your amr_bringup
+# probably publishes it). If it errors, add publish_laser_tf:=true to
+# nav_real.launch.
+
+rostopic hz /scan          # ~40 Hz
+rostopic hz /livox/lidar   # ~10 Hz
+```
+
+## 2. Get the code onto the robot
 
 ```bash
 mkdir -p ~/fyp_ws/src && cd ~/fyp_ws/src
@@ -24,96 +44,71 @@ cd ~/fyp_ws && catkin_make
 echo "source ~/fyp_ws/devel/setup.bash" >> ~/.bashrc
 ```
 
-## 2. Mid-360 driver (livox_ros_driver2)
+The `myroom` map is included in the repo
+(`fyp_jackal_navigation/maps/myroom.yaml`), so nothing to copy.
 
-The Mid-360 is only supported by **livox_ros_driver2** (not the old
-livox_ros_driver), which needs **Livox-SDK2** first:
+## 3. TF calibration (10 minutes, once)
+
+`nav_real.launch` publishes `base_link -> livox_frame` from measured values.
+Already set: `mid360_z 0.39` (0.455 − 0.065 base_link height), pitch 0.6671
+(38.22°). Still to measure: **the forward offset** — measure the horizontal
+distance from the dome centre to the FRONT edge of the top plate; then
+`mid360_x = 0.21 − that distance` (plate front edge ≈ 0.21 m ahead of robot
+centre). A few cm of error is acceptable.
+
+**Verification (do this before navigating):**
 
 ```bash
-# SDK2
-git clone https://github.com/Livox-SDK/Livox-SDK2.git ~/Livox-SDK2
-cd ~/Livox-SDK2 && mkdir build && cd build
-cmake .. && make -j4 && sudo make install
-
-# driver (note: cloned with the exact folder name the build script expects)
-cd ~/fyp_ws/src
-git clone https://github.com/Livox-SDK/livox_ros_driver2.git
-cd livox_ros_driver2
-./build.sh ROS1
+roslaunch fyp_jackal_navigation nav_real.launch
 ```
 
-If `build.sh ROS1` fails on Melodic (it officially targets Noetic), paste the
-error — there are known small fixes.
+In RViz (fixed frame `base_link`), enable the "Mid360 Real (PointCloud2)"
+display: the floor must be a flat sheet of points near z = 0 (colour-coded
+blue/low), walls vertical. If the floor tilts up/down ahead of the robot,
+adjust `mid360_pitch` by small steps (±0.02 rad) until flat.
 
-### Network
-
-The Mid-360 talks over Ethernet with **fixed IPs**:
-
-- Lidar IP: `192.168.1.1XX` where `XX` = last two digits of the serial number
-  on the lidar's sticker.
-- Give the Jackal's Ethernet port a static IP on that subnet, e.g.:
-  `sudo ip addr add 192.168.1.50/24 dev eth0` (make it permanent via
-  netplan/interfaces later). Test with `ping 192.168.1.1XX`.
-- Edit `livox_ros_driver2/config/MID360_config.json`: set every `host_..._ip`
-  field to `192.168.1.50` and the lidar `ip` to your `192.168.1.1XX`.
-
-### Run and verify
+## 4. Navigate
 
 ```bash
-roslaunch livox_ros_driver2 rviz_MID360.launch   # publishes /livox/lidar + opens rviz
+roslaunch fyp_jackal_navigation nav_real.launch          # 3D fusion ON
+roslaunch fyp_jackal_navigation nav_real.launch use_mid360:=false   # 2D-only baseline
 ```
 
-You should see the cloud. For headless use later, use `msg_MID360.launch` but
-make sure `xfer_format` is **0** (PointCloud2) in the launch file — the costmap
-needs PointCloud2, not the Livox custom message. Check:
-`rostopic info /livox/lidar` → `sensor_msgs/PointCloud2`, and
-`rostopic echo /livox/lidar/header/frame_id -n 1` → `livox_frame`.
-
-## 3. Mid-360 TF (measure the mount!)
-
-`nav_real.launch` publishes a static transform `base_link -> livox_frame`.
-Measure on the real robot and pass the values:
-
-- `mid360_z`: height of the Mid-360 optical centre above the floor **minus
-  0.065 m** (base_link sits ~0.065 m above the floor).
-- `mid360_x`: forward offset from the robot centre (negative = behind centre).
-- `mid360_pitch`: nose-down tilt in **radians** (38.22° = 0.6671).
-
-**Calibration check:** with the driver and TF running, open RViz (fixed frame
-`base_link`), add the `/livox/lidar` PointCloud2 display, and look at a wall
-and the floor: floor points must lie flat near z = 0 (not a tilted plane) and
-walls must be vertical. Tune `mid360_pitch` until they are.
-
-## 4. Run navigation
+RViz from the VM/laptop on the same WiFi:
 
 ```bash
-roslaunch fyp_jackal_navigation nav_real.launch \
-    map_file:=/path/to/your_map.yaml \
-    mid360_z:=<measured> mid360_pitch:=<measured>
-```
-
-From your laptop/VM on the same network you can run RViz remotely:
-
-```bash
-export ROS_MASTER_URI=http://<jackal_ip>:11311
+export ROS_MASTER_URI=http://192.168.1.124:11311   # robot's WiFi IP
 export ROS_IP=<your_vm_ip>
 roslaunch fyp_jackal_navigation view.launch
 ```
 
-(Enable the "Mid360 Real (PointCloud2)" display, disable the sim one.
-Clocks must roughly agree — install `chrony` if TF complains about time.)
+(Enable the "... Real" displays, disable the sim ones. If TF complains about
+time, sync clocks: `sudo apt install chrony` on both.)
 
-Then: **2D Pose Estimate** on the map, small test goal first, then the bridge
-and tripod runs.
+**2D Pose Estimate** on the map first, small test goal second, then the tasks.
 
-## 5. Real-world checklist
+## 5. Task physics with YOUR measurements — read this
 
-- [ ] `clearance` = measured robot height (top of Mid-360) + ~0.10 m.
-- [ ] Real bridge clearance comfortably above the robot? If it is LOWER than
-      the robot, the correct outcome is the robot *refusing* to drive under.
-- [ ] First bridge run: hand on the e-stop, walk alongside.
-- [ ] Floor marks in the costmap while driving? Raise
-      `mid360/min_obstacle_height` (0.15 → 0.20) in `costmap_common_real.yaml`.
-- [ ] Sparse/flickery marking on the tripod? The Mid-360 pattern is
-      non-repetitive; marks accumulate over ~0.5–1 s. Approach slower, or ask
-      me to add a small cloud-accumulator node.
+- **Bridge** (0.75 m clearance vs 0.50 m robot): fits. With `clearance` =
+  0.60, the deck (0.75) is ignored and the robot drives under. The 1.0 m
+  width is the tight dimension: only ~0.28 m spare per side, which is why the
+  real config uses smaller padding/inflation. If move_base hesitates at the
+  entrance, lower `footprint_padding` to 0.03 in `costmap_common_real.yaml`.
+- **Tripod**: your box spans ~0.85–1.07 m — *higher than the bridge deck
+  (0.75 m)*. Therefore NO height filter can mark the box while letting the
+  bridge pass: physically, if the robot fits under a 0.75 m bridge, it also
+  fits under a 1.07 m box. The robot will avoid the tripod anyway because the
+  Mid-360 sees the **legs and centre stick** (below 0.60 m) far more reliably
+  than the Hokuyo does. If you want the "3D detects the box" demonstration
+  specifically, shorten the tripod so the box bottom sits below ~0.55 m.
+- Safety: first bridge run with a hand on the e-stop; max speed is 0.5 m/s.
+
+## 6. Troubleshooting
+
+| Symptom | Fix |
+|---|---|
+| Floor ahead marks as obstacle while driving | Raise `mid360/min_obstacle_height` 0.15 → 0.20; re-check pitch calibration. |
+| Robot ignores the tripod legs until close | Marks accumulate over ~1 s of Mid-360 pattern; approach slower, or ask Claude for a cloud-accumulator node. |
+| AMCL lost / jumps | Re-set 2D Pose Estimate; check the map matches the room's current furniture. |
+| move_base won't enter the bridge | Costmap too fat for the 1.0 m opening: lower `footprint_padding` / `inflation_radius` slightly. |
+| No `map -> odom` TF | AMCL gets no scans: check `/scan` and that `scan_topic` arg matches. |
