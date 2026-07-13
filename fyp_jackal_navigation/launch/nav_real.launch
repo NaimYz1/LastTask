@@ -12,9 +12,10 @@
        map_file:=/path/to/other_map.yaml for a different room. -->
   <arg name="map_file" default="$(find fyp_jackal_navigation)/maps/myroom.yaml"/>
   <arg name="use_mid360" default="true"/>
-  <!-- Robot is ~0.50 m tall (top of Mid-360); 0.60 = height + margin.
-       Real bridge deck is ~0.75 m, so it stays above this and is ignored. -->
-  <arg name="clearance" default="0.60"/>
+  <!-- Heights are in the odom/map frame (z=0 at base_link start height,
+       ~0.065 m above floor). Robot top = 0.435 there; the 0.75 m bridge
+       deck = 0.685. 0.55 sits between them with margin for TF pitch error. -->
+  <arg name="clearance" default="0.55"/>
   <arg name="scan_topic" default="scan"/>
 
   <!-- Fallback mount values, only used with publish_mid360_tf:=true.
