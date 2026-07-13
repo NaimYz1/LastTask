@@ -7,7 +7,7 @@ grid (1 m cells).
 ## Task 1 — Drive under the bridge
 
 The arena is split by a wall at x = 2.5 with a single doorway; the bridge
-(1.5 m wide opening, **0.85 m clearance**, robot is ~0.60 m tall to the top
+(1.5 m wide opening, **1.05 m clearance**, robot is ~0.61 m tall to the top
 of the Mid-360 dome) sits in that doorway. The bridge is **not** in the
 static map.
 

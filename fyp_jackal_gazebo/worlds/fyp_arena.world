@@ -9,10 +9,10 @@
 
   "Unexpected" obstacles that are NOT in the map (must be handled by the
   robot's sensors at run time):
-    * bridge  at ( 2.5, 0): opening 1.5 m wide, 0.85 m clearance, deck
-      0.85-1.00 m. The 2D lidar (scan plane ~0.19 m) sees only the side
-      supports; the deck is visible only to the Mid-360. The robot FITS
-      underneath and must drive through.
+    * bridge  at ( 2.5, 0): opening 1.5 m wide, 1.05 m clearance, deck
+      1.05-1.20 m. The 2D lidar (scan plane ~0.37 m) sees only the side
+      supports; the deck is visible only to the Mid-360. The robot (~0.61 m
+      tall) FITS underneath and must drive through.
     * tripod  at (-3.0, 0): three thin legs (r = 12 mm) + thin centre stick
       + box (0.28 x 0.28 x 0.22) spanning z = 0.42-0.64 m. The box floats
       above the 2D scan plane; only the Mid-360 sees it properly.
@@ -139,35 +139,35 @@
 
     <!-- ================== bridge (NOT in map) ======================= -->
     <!-- Opening: 1.5 m wide (between support inner faces at y = +/-0.75),
-         0.85 m clearance under the deck. Sits in the divider doorway, so
+         1.05 m clearance under the deck. Sits in the divider doorway, so
          the only way to the east half is underneath it. -->
     <model name="bridge">
       <static>true</static>
       <link name="link">
         <collision name="support_left_col">
-          <pose>2.5 0.825 0.425 0 0 0</pose>
-          <geometry><box><size>1.0 0.15 0.85</size></box></geometry>
+          <pose>2.5 0.825 0.525 0 0 0</pose>
+          <geometry><box><size>1.0 0.15 1.05</size></box></geometry>
         </collision>
         <visual name="support_left_vis">
-          <pose>2.5 0.825 0.425 0 0 0</pose>
-          <geometry><box><size>1.0 0.15 0.85</size></box></geometry>
+          <pose>2.5 0.825 0.525 0 0 0</pose>
+          <geometry><box><size>1.0 0.15 1.05</size></box></geometry>
           <material><script><uri>file://media/materials/scripts/gazebo.material</uri><name>Gazebo/Bricks</name></script></material>
         </visual>
         <collision name="support_right_col">
-          <pose>2.5 -0.825 0.425 0 0 0</pose>
-          <geometry><box><size>1.0 0.15 0.85</size></box></geometry>
+          <pose>2.5 -0.825 0.525 0 0 0</pose>
+          <geometry><box><size>1.0 0.15 1.05</size></box></geometry>
         </collision>
         <visual name="support_right_vis">
-          <pose>2.5 -0.825 0.425 0 0 0</pose>
-          <geometry><box><size>1.0 0.15 0.85</size></box></geometry>
+          <pose>2.5 -0.825 0.525 0 0 0</pose>
+          <geometry><box><size>1.0 0.15 1.05</size></box></geometry>
           <material><script><uri>file://media/materials/scripts/gazebo.material</uri><name>Gazebo/Bricks</name></script></material>
         </visual>
         <collision name="deck_col">
-          <pose>2.5 0 0.925 0 0 0</pose>
+          <pose>2.5 0 1.125 0 0 0</pose>
           <geometry><box><size>1.0 1.95 0.15</size></box></geometry>
         </collision>
         <visual name="deck_vis">
-          <pose>2.5 0 0.925 0 0 0</pose>
+          <pose>2.5 0 1.125 0 0 0</pose>
           <geometry><box><size>1.0 1.95 0.15</size></box></geometry>
           <material><script><uri>file://media/materials/scripts/gazebo.material</uri><name>Gazebo/Wood</name></script></material>
         </visual>
