@@ -17,24 +17,21 @@
   <arg name="clearance" default="0.60"/>
   <arg name="scan_topic" default="scan"/>
 
-  <!-- ============ Mid-360 mount, measured 2026-07-13 ============
-       Dome centre ~0.455 m above floor; base_link is ~0.065 m above the
-       floor -> z = 0.39. Forward offset (x) still to be measured: distance
-       from dome centre to the top plate's FRONT edge, then x = 0.21 - that
-       (the plate front edge is ~0.21 m ahead of robot centre).
-       pitch = nose-down tilt in RADIANS (38.22 deg = 0.6671, from the mount
-       design). Verify with the floor-flatness check in docs/REAL_ROBOT.md. -->
-  <arg name="mid360_x" default="0.0"/>
+  <!-- Fallback mount values, only used with publish_mid360_tf:=true.
+       Mirrors the robot's own TF: xyz [0.179, 0, 0.394], pitch 45 deg
+       (0.7854 rad). -->
+  <arg name="mid360_x" default="0.179"/>
   <arg name="mid360_y" default="0.0"/>
-  <arg name="mid360_z" default="0.39"/>
-  <arg name="mid360_pitch" default="0.6671"/>
+  <arg name="mid360_z" default="0.394"/>
+  <arg name="mid360_pitch" default="0.7854"/>
   <arg name="mid360_frame" default="livox_frame"/>
 
-  <!-- Set publish_mid360_tf:=false if the robot's own bringup already
-       publishes a TF for livox_frame (check with:
-       rosrun tf tf_echo base_link livox_frame  -- with this launch NOT
-       running). Two publishers for one frame cause TF flicker. -->
-  <arg name="publish_mid360_tf" default="true"/>
+  <!-- cpr-j100-0540's own bringup ALREADY publishes base_link->livox_frame
+       (checked 2026-07-13: xyz [0.179, 0, 0.394], pitch 45.0 deg — matches
+       the measured dome height of ~0.455 m above the floor). Publishing a
+       second, conflicting transform corrupts the cloud projection, so this
+       defaults to false. Only set true on a robot without its own livox TF. -->
+  <arg name="publish_mid360_tf" default="false"/>
 
   <!-- static_transform_publisher args: x y z yaw pitch roll parent child period_ms -->
   <node pkg="tf" type="static_transform_publisher" name="mid360_static_tf"
