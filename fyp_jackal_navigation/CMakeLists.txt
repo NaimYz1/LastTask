@@ -5,7 +5,9 @@ find_package(catkin REQUIRED)
 
 catkin_package()
 
-catkin_install_python(PROGRAMS scripts/mid360_filter.py
+catkin_install_python(PROGRAMS
+  scripts/mid360_filter.py
+  scripts/measure_tilt.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
