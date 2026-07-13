@@ -1,29 +1,28 @@
 #!/usr/bin/env python
-"""Mid-360 obstacle filter (TF-free) with ego-motion-compensated accumulation.
+"""Mid-360 obstacle filter (TF-free): gravity-aligned height band +
+ego-motion-compensated accumulation.
 
-Subscribes to the raw Livox cloud (/livox/lidar, PointCloud2, sensor frame),
-applies the FIXED mount transform (parameters, not TF - another system on
-this robot fights over the livox_frame TF), keeps only points inside the
-robot's obstacle height band, accumulates the last ~1.5 s of points
-(compensated with wheel/EKF odometry so the robot's own motion does not
-smear them), and republishes everything in base_link frame on
-~mid360/obstacles.
+Pipeline per cloud (/livox/lidar, PointCloud2, sensor frame):
+  1. fixed mount transform sensor -> base_link (parameters, not TF - another
+     system on this robot fights over the livox_frame TF)
+  2. height band along WORLD-UP (gravity), not the robot's z-axis: the
+     EKF odometry's roll/pitch is used, so when the robot pitches while
+     braking or crossing floor tape, the floor 3-4 m ahead does NOT rise
+     into the band and create phantom obstacles
+  3. accumulate the last ~1.5 s of banded points, each cloud paired with
+     the odometry pose at ITS OWN timestamp (so recovery spins do not smear
+     points), all republished in the current base_link frame
 
-Why accumulate: thin obstacles (tripod legs, stool poles, ~1-2 cm tubes)
-only get a few lidar hits per frame, and costmap raytrace-clearing erases a
-cell whenever a ray passes BESIDE the thin object through the same cell.
-Single-frame marking therefore flickers and the planner can drive through a
-momentarily-cleared leg. With accumulation every costmap update re-marks
-the leg from many hits, so marks are stable; it also keeps obstacles marked
-briefly after they leave the tilted FOV during a close approach.
+Thin obstacles (tripod legs, stool poles) stay solidly marked because every
+costmap update re-marks them from the whole window; raytrace clearing can
+no longer flicker them away.
 
-Heights are relative to base_link (~0.065 m above the floor):
-  min_z 0.05 -> keep from ~0.12 m above the floor (low enough to see the
-                star-base of a stool, high enough to reject the floor now
-                that the mount pitch is measured, not guessed)
-  max_z 0.50 -> ignore above ~0.57 m (robot is ~0.50 m tall; the 0.75 m
-                bridge deck stays above the band)
+Band heights are relative to base_link origin (~0.065 m above the floor):
+  min_z 0.05 -> keep from ~0.12 m above the floor (sees a stool star-base)
+  max_z 0.50 -> ignore above ~0.57 m (robot ~0.50 m tall; the 0.75 m bridge
+                deck stays above the band)
 """
+import bisect
 import collections
 
 import numpy as np
@@ -57,7 +56,7 @@ class Mid360Filter(object):
         mount_y = rospy.get_param('~mount_y', 0.0)
         mount_z = rospy.get_param('~mount_z', 0.375)
         pitch = rospy.get_param('~mount_pitch', 0.6759)  # rad nose-down, measured (38.73 deg)
-        self.min_z = rospy.get_param('~min_z', 0.05)     # base_link frame
+        self.min_z = rospy.get_param('~min_z', 0.05)     # along world-up, from base origin
         self.max_z = rospy.get_param('~max_z', 0.50)
         self.min_range = rospy.get_param('~min_range', 0.30)
         self.max_range = rospy.get_param('~max_range', 4.5)
@@ -72,23 +71,42 @@ class Mid360Filter(object):
                                [s, 0.0, c]])
         self.trans = np.array([mount_x, mount_y, mount_z])
 
-        self.odom_pose = None            # (R, t): base_link pose in odom
+        # odometry history: parallel lists (time, rotation, translation)
+        self.odom_t = collections.deque(maxlen=300)   # ~6 s at 50 Hz
+        self.odom_r = collections.deque(maxlen=300)
+        self.odom_p = collections.deque(maxlen=300)
+
         self.buffer = collections.deque()  # (time_sec, points in odom frame)
 
         self.pub = rospy.Publisher('mid360/obstacles', PointCloud2, queue_size=2)
-        rospy.Subscriber(odom_topic, Odometry, self.odom_callback, queue_size=5)
+        rospy.Subscriber(odom_topic, Odometry, self.odom_callback, queue_size=20)
         rospy.Subscriber('livox/lidar', PointCloud2, self.callback,
                          queue_size=2, buff_size=1 << 24)
         rospy.loginfo('mid360_filter: mount xyz=(%.3f, %.3f, %.3f) pitch=%.4f rad, '
-                      'band z=[%.2f, %.2f] rel. base_link, accumulate %.1f s',
+                      'band z=[%.2f, %.2f] along world-up, accumulate %.1f s',
                       mount_x, mount_y, mount_z, pitch,
                       self.min_z, self.max_z, self.window)
 
     def odom_callback(self, msg):
         p = msg.pose.pose.position
         q = msg.pose.pose.orientation
-        self.odom_pose = (quat_to_rot(q.x, q.y, q.z, q.w),
-                          np.array([p.x, p.y, p.z]))
+        self.odom_t.append(msg.header.stamp.to_sec())
+        self.odom_r.append(quat_to_rot(q.x, q.y, q.z, q.w))
+        self.odom_p.append(np.array([p.x, p.y, p.z]))
+
+    def pose_at(self, t):
+        """Odometry pose (R, p) closest in time to t, or None."""
+        if not self.odom_t:
+            return None
+        times = list(self.odom_t)
+        i = bisect.bisect_left(times, t)
+        if i <= 0:
+            i = 0
+        elif i >= len(times):
+            i = len(times) - 1
+        elif t - times[i - 1] < times[i] - t:
+            i -= 1
+        return self.odom_r[i], self.odom_p[i]
 
     def callback(self, msg):
         n = msg.width * msg.height
@@ -106,18 +124,27 @@ class Mid360Filter(object):
             rng = np.sqrt((xyz ** 2).sum(axis=1))
             xyz = xyz[(rng > self.min_range) & (rng < self.max_range)]
         base = xyz.dot(self.rot_t) + self.trans if xyz.shape[0] else xyz
-        if base.shape[0]:
-            base = base[(base[:, 2] > self.min_z) & (base[:, 2] < self.max_z)]
 
-        if self.odom_pose is None or self.window <= 0.0:
+        stamp = msg.header.stamp.to_sec()
+        pose = self.pose_at(stamp)
+
+        # Height band along world-up. With odometry, use the gravity
+        # direction from the EKF's roll/pitch (third row of the rotation);
+        # without it, fall back to the robot z-axis.
+        if base.shape[0]:
+            up = pose[0][2, :] if pose is not None else np.array([0.0, 0.0, 1.0])
+            h = base.dot(up)
+            base = base[(h > self.min_z) & (h < self.max_z)]
+
+        if pose is None or self.window <= 0.0:
             self.publish(msg, base)
             return
 
-        # store in odom frame, output the whole window in the CURRENT base frame
-        rot, trans = self.odom_pose
-        now = msg.header.stamp.to_sec()
-        self.buffer.append((now, base.dot(rot.T) + trans))
-        cutoff = now - self.window
+        # store in odom frame (pose matched to the cloud's own stamp),
+        # output the whole window in the base frame at this stamp
+        rot, trans = pose
+        self.buffer.append((stamp, base.dot(rot.T) + trans))
+        cutoff = stamp - self.window
         while self.buffer and self.buffer[0][0] < cutoff:
             self.buffer.popleft()
         merged_odom = np.vstack([b[1] for b in self.buffer])
