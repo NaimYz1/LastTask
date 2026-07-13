@@ -101,8 +101,12 @@ roslaunch fyp_jackal_navigation view.launch
 ```
 
 (Equivalent: `rviz -d ~/fyp_ws/src/fyp_jackal/fyp_jackal_navigation/rviz/fyp_nav.rviz`.
-Enable the "... Real" displays, disable the sim ones. If TF complains about
-time, sync clocks: `sudo apt install chrony` on both machines.)
+Displays to keep ON for the real robot: "Mid360 Obstacles (filtered, real)"
+(magenta - what the costmap consumes), "Hokuyo Real (/scan)", map/costmaps/
+paths. Keep "Mid360 Real (PointCloud2)" OFF normally - it is the raw cloud
+including floor and CEILING, only useful for whole-bridge screenshots.
+Disable the sim displays. If TF complains about time, sync clocks:
+`sudo apt install chrony` on both machines.)
 
 **2D Pose Estimate** on the map first, small test goal second, then the tasks.
 
