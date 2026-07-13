@@ -18,11 +18,19 @@ TrajectoryPlannerROS:
   yaw_goal_tolerance: 0.30
   latch_xy_goal_tolerance: false
 
-  # Forward simulation
+  # Forward simulation. Generous sampling: entering the ~1 m bridge gap
+  # needs precise alignment, and a coarse trajectory search keeps failing
+  # there and triggering recovery spins.
   sim_time: 2.0
   sim_granularity: 0.02
-  vx_samples: 6
-  vtheta_samples: 20
+  vx_samples: 10
+  vtheta_samples: 40
+
+  # Read by rotate_recovery: spin SLOWLY. Skid-steer in-place rotation
+  # slips the wheels and degrades AMCL; fast recovery spins were leaving
+  # the robot mislocalized and unable to plan afterwards.
+  max_rotational_vel: 0.6
+  min_in_place_rotational_vel: 0.3
 
   # Trajectory scoring
   meter_scoring: true

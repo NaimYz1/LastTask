@@ -39,9 +39,12 @@
     <param name="laser_z_rand" value="0.05"/>
     <param name="laser_sigma_hit" value="0.2"/>
 
-    <param name="odom_alpha1" value="0.2"/>
+    <!-- alpha1/alpha4 raised for skid-steer: in-place rotation slips the
+         wheels, so rotation odometry must be trusted less or AMCL ends up
+         confidently mislocalized after recovery spins. -->
+    <param name="odom_alpha1" value="0.4"/>
     <param name="odom_alpha2" value="0.2"/>
     <param name="odom_alpha3" value="0.2"/>
-    <param name="odom_alpha4" value="0.2"/>
+    <param name="odom_alpha4" value="0.4"/>
   </node>
 </launch>

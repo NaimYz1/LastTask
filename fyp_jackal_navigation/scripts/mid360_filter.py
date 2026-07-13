@@ -157,13 +157,16 @@ class Mid360Filter(object):
 
         # store in odom frame (pose matched to the cloud's own stamp),
         # output the whole window in the base frame at this stamp.
-        # Frames captured while spinning fast are not stored.
+        # While spinning fast, the window FREEZES: mid-spin frames are
+        # smeared (skid-steer slip + intra-frame motion) so they are not
+        # stored, but the pre-spin window is kept alive - it stays valid
+        # because every stored frame is anchored to its own odometry pose.
         rot, trans = pose
         if abs(self.last_wz) <= self.max_spin:
             self.buffer.append((stamp, base.dot(rot.T) + trans))
-        cutoff = stamp - self.window
-        while self.buffer and self.buffer[0][0] < cutoff:
-            self.buffer.popleft()
+            cutoff = stamp - self.window
+            while self.buffer and self.buffer[0][0] < cutoff:
+                self.buffer.popleft()
         if not self.buffer:
             self.publish(msg, np.zeros((0, 3)))
             return
