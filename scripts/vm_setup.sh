@@ -7,6 +7,14 @@
 #   bash fyp_jackal/scripts/vm_setup.sh
 set -e
 
+echo "==> [0/4] Working around the Ubuntu 18.04 appstreamcli bug (crashes 'apt-get update')"
+# Known bionic bug: appstreamcli segfaults in apt's Post-Invoke-Success hook.
+# appstream only feeds the Ubuntu Software GUI store; safe to remove on a
+# robotics VM.
+if dpkg -s appstream >/dev/null 2>&1; then
+    sudo apt-get purge -y appstream
+fi
+
 echo "==> [1/4] Upgrading Gazebo 9 to the latest 9.x (livox plugin needs newer than the stock 9.0)"
 sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list'
 wget https://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -
