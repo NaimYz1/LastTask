@@ -48,6 +48,7 @@ rosrun tf tf_echo base_link mid360_link   # should show the 38.22 deg pitch
 
 | Symptom | Fix |
 |---|---|
+| `gzserver`/`gzclient`: `symbol lookup error: libgazebo_common.so.9: undefined symbol: ..SetUserAgent..` | The ignition libraries were not upgraded together with Gazebo. Run: `sudo apt-get install --only-upgrade $(dpkg -l \| awk '/^ii  (libignition\|libsdformat)/{print $2}')` |
 | `livox_laser_simulation` fails to **build** with Gazebo API errors | Gazebo was not actually upgraded — `gazebo --version` should print 9.1x. Re-run step 1, then `catkin_make clean && catkin_make`. |
 | Plugin builds but Gazebo prints `Failed to load plugin liblivox_laser_simulation.so` | Open a new terminal so `devel/setup.bash` is sourced (it adds the plugin dir to `GAZEBO_PLUGIN_PATH` via the catkin env). |
 | `/mid360/points` exists but RViz shows nothing | The display must be **rviz/PointCloud** (legacy type), not PointCloud2. The provided `view.launch` already uses the right one. |

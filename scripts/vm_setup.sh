@@ -21,6 +21,14 @@ wget https://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -
 sudo apt-get update
 sudo apt-get install -y gazebo9 libgazebo9-dev
 
+# Gazebo 9.19 needs matching ignition/sdformat libraries from the same OSRF
+# repo; apt does not always pull them in, which leaves gzserver failing with
+# "undefined symbol: ...SetUserAgent...". Upgrade whatever is installed.
+IGN_PKGS=$(dpkg -l | awk '/^ii  (libignition|libsdformat)/{print $2}')
+if [ -n "$IGN_PKGS" ]; then
+    sudo apt-get install -y --only-upgrade $IGN_PKGS
+fi
+
 echo "==> [2/4] Installing ROS packages"
 sudo apt-get install -y \
     ros-melodic-jackal-simulator \
