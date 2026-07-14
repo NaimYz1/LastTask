@@ -38,6 +38,10 @@
   <!-- park:=true (default): rotate in place at the goal to match the 2D Nav
        Goal arrow heading. park:=false: stop with arrival heading. -->
   <arg name="park" default="true"/>
+  <!-- Auto-initialize AMCL at this waypoint on startup (the robot must
+       physically start there). Set init_pose:="" to disable and use RViz's
+       2D Pose Estimate instead. -->
+  <arg name="init_pose" default="home"/>
   <!-- Wipe costmaps every N seconds (0 = off). Stops global-costmap mark
        smear from AMCL jitter sealing narrow corridors over a run; safe
        because the mid360_filter window re-marks everything within 0.1 s. -->
@@ -102,6 +106,12 @@
   <include file="$(find fyp_jackal_navigation)/launch/include/amcl.launch">
     <arg name="scan_topic" value="$(arg scan_topic)"/>
   </include>
+
+  <!-- One-shot: place the AMCL pose at the home waypoint so RViz opens with
+       the robot already localized (no manual 2D Pose Estimate needed). -->
+  <node pkg="fyp_jackal_navigation" type="waypoint_nav.py" name="initial_pose_setter"
+        args="--set-pose $(arg init_pose)" output="screen"
+        if="$(eval init_pose != '')"/>
 
   <include file="$(find fyp_jackal_navigation)/launch/include/move_base.launch">
     <arg name="use_mid360" value="$(arg use_mid360)"/>

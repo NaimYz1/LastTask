@@ -77,6 +77,33 @@ class WaypointNav(object):
         print('loc std : %.2f m, %.2f rad' % self.std)
         return 0
 
+    def set_pose(self, name, wp):
+        """Re-initialize AMCL at a waypoint (robot must physically be there)."""
+        pub = rospy.Publisher('/initialpose', PoseWithCovarianceStamped,
+                              queue_size=1, latch=True)
+        msg = PoseWithCovarianceStamped()
+        msg.header.frame_id = 'map'
+        yaw = wp.get('yaw', 0.0)
+        msg.pose.pose.position.x = wp['x']
+        msg.pose.pose.position.y = wp['y']
+        msg.pose.pose.orientation = Quaternion(
+            0.0, 0.0, math.sin(yaw / 2.0), math.cos(yaw / 2.0))
+        # same uncertainty RViz's "2D Pose Estimate" uses
+        msg.pose.covariance[0] = 0.25
+        msg.pose.covariance[7] = 0.25
+        msg.pose.covariance[35] = 0.068
+        # publish a few times so amcl definitely receives it, even if it
+        # starts after us
+        for _ in range(5):
+            if rospy.is_shutdown():
+                break
+            msg.header.stamp = rospy.Time.now()
+            pub.publish(msg)
+            rospy.sleep(1.0)
+        print('AMCL pose set to "%s": x=%.2f y=%.2f yaw=%.0f deg'
+              % (name, wp['x'], wp['y'], math.degrees(yaw)))
+        return 0
+
     def record(self, name, path):
         if not self.wait_pose():
             print('No /amcl_pose - cannot record. Is navigation running?')
@@ -149,6 +176,9 @@ def main():
                         help='waypoint names to visit in order')
     parser.add_argument('--record', metavar='NAME',
                         help='save the current pose under this name')
+    parser.add_argument('--set-pose', metavar='NAME', dest='set_pose',
+                        help='re-initialize AMCL at this waypoint '
+                             '(robot must physically be standing there)')
     parser.add_argument('--where', action='store_true',
                         help='print current position and heading')
     parser.add_argument('--file', default=None, help='waypoints yaml path')
@@ -165,6 +195,17 @@ def main():
         sys.exit(nav.where())
     if args.record:
         sys.exit(nav.record(args.record, path))
+    if args.set_pose:
+        if not os.path.isfile(path):
+            print('No waypoint file at %s' % path)
+            sys.exit(1)
+        with open(path) as f:
+            table = yaml.safe_load(f) or {}
+        if args.set_pose not in table:
+            print('Unknown waypoint "%s". Known: %s'
+                  % (args.set_pose, ', '.join(sorted(table))))
+            sys.exit(1)
+        sys.exit(nav.set_pose(args.set_pose, table[args.set_pose]))
     if not args.waypoints:
         parser.print_help()
         sys.exit(1)
