@@ -25,4 +25,6 @@
   <exec_depend>move_base</exec_depend>
   <exec_depend>navfn</exec_depend>
   <exec_depend>rviz</exec_depend>
+  <!-- optional: only needed when launching with planner:=teb -->
+  <exec_depend>teb_local_planner</exec_depend>
 </package>

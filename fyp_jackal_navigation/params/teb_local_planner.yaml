@@ -1,0 +1,64 @@
+# TEB local planner - smooth car-like arcs instead of tank pivots.
+# Selected with planner:=teb (requires: sudo apt-get install ros-melodic-teb-local-planner)
+# Tuned for the 0.70 m demo corridor: homotopy exploration OFF (one
+# committed trajectory, no side-to-side indecision), via-points glue the
+# trajectory to the global path (the corridor centre line), strong
+# forward-drive preference (reversing only when genuinely needed).
+TebLocalPlannerROS:
+  odom_topic: odometry/filtered
+
+  # Trajectory
+  teb_autosize: true
+  dt_ref: 0.3
+  dt_hysteresis: 0.1
+  global_plan_overwrite_orientation: true
+  allow_init_with_backwards_motion: false
+  max_global_plan_lookahead_dist: 2.0
+  feasibility_check_no_poses: 3
+  global_plan_viapoint_sep: 0.3
+
+  # Robot kinematics
+  max_vel_x: 0.4
+  max_vel_x_backwards: 0.15
+  max_vel_theta: 1.0
+  acc_lim_x: 1.0
+  acc_lim_theta: 2.0
+  # 0.0 = diff-drive (can still pivot when truly required, but the
+  # optimizer strongly prefers smooth arcs). Set 0.15-0.30 for strictly
+  # car-like motion - note the robot then needs multi-point turns to
+  # reverse direction in the open areas.
+  min_turning_radius: 0.0
+  footprint_model:
+    type: polygon
+    vertices: [[-0.26, -0.215], [-0.26, 0.215], [0.26, 0.215], [0.26, -0.215]]
+
+  # Goal tolerance
+  xy_goal_tolerance: 0.2
+  yaw_goal_tolerance: 0.3
+  free_goal_vel: false
+
+  # Obstacles (distances measured from the polygon edge)
+  min_obstacle_dist: 0.05
+  inflation_dist: 0.15
+  include_costmap_obstacles: true
+  costmap_obstacles_behind_robot_dist: 1.0
+  obstacle_poses_affected: 20
+
+  # Optimization weights
+  no_inner_iterations: 5
+  no_outer_iterations: 4
+  weight_max_vel_x: 2.0
+  weight_max_vel_theta: 1.0
+  weight_acc_lim_x: 1.0
+  weight_acc_lim_theta: 1.0
+  weight_kinematics_nh: 1000.0
+  weight_kinematics_forward_drive: 100.0
+  weight_kinematics_turning_radius: 1.0
+  weight_optimaltime: 1.0
+  weight_obstacle: 50.0
+  weight_inflation: 0.1
+  weight_viapoint: 1.0
+
+  # One trajectory, committed - no parallel-hypothesis flip-flopping.
+  enable_homotopy_class_planning: false
+  enable_multithreading: true

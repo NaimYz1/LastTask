@@ -15,10 +15,17 @@
        recovery spins, loose goal tolerances (no final heading pirouette),
        shorter lookahead. -->
   <arg name="fast" default="false"/>
+  <!-- planner:=teb - smooth car-like arcs via teb_local_planner (needs
+       ros-melodic-teb-local-planner installed). Default keeps the stock
+       TrajectoryPlanner behaviour. -->
+  <arg name="planner" default="trajectory"/>
 
   <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
     <param name="base_global_planner" value="navfn/NavfnROS"/>
-    <param name="base_local_planner" value="base_local_planner/TrajectoryPlannerROS"/>
+    <param name="base_local_planner" value="base_local_planner/TrajectoryPlannerROS"
+           unless="$(eval planner == 'teb')"/>
+    <param name="base_local_planner" value="teb_local_planner/TebLocalPlannerROS"
+           if="$(eval planner == 'teb')"/>
     <!-- Without tolerance, a goal clicked within the inscribed ring of any
          furniture makes navfn fail instantly and deterministically
          ("Failed to find a valid plan"). With it, navfn plans to the best
@@ -56,6 +63,8 @@
     <rosparam file="$(arg local_costmap_params)" command="load"/>
     <rosparam file="$(arg global_costmap_params)" command="load"/>
     <rosparam file="$(find fyp_jackal_navigation)/params/base_local_planner.yaml" command="load"/>
+    <rosparam file="$(find fyp_jackal_navigation)/params/teb_local_planner.yaml"
+              command="load" if="$(eval planner == 'teb')"/>
 
     <!-- Overhead clearance override (must come AFTER the rosparam loads):
          Mid-360 points above this height (metres, floor frame) are ignored,
@@ -67,6 +76,8 @@
 
     <!-- Speed override (after the rosparam load so it wins). -->
     <param name="TrajectoryPlannerROS/max_vel_x" value="$(arg max_vel)"/>
+    <param name="TebLocalPlannerROS/max_vel_x" value="$(arg max_vel)"
+           if="$(eval planner == 'teb')"/>
 
     <!-- fast-mode overrides (document order: these win over the yaml).
          planner_frequency deliberately NOT raised: 4 Hz replanning made
@@ -84,5 +95,9 @@
     <param name="TrajectoryPlannerROS/xy_goal_tolerance" value="0.3" if="$(arg fast)"/>
     <param name="TrajectoryPlannerROS/yaw_goal_tolerance" value="6.28" if="$(arg fast)"/>
     <param name="TrajectoryPlannerROS/latch_xy_goal_tolerance" value="true" if="$(arg fast)"/>
+    <param name="TebLocalPlannerROS/xy_goal_tolerance" value="0.3"
+           if="$(eval fast and planner == 'teb')"/>
+    <param name="TebLocalPlannerROS/yaw_goal_tolerance" value="6.28"
+           if="$(eval fast and planner == 'teb')"/>
   </node>
 </launch>
