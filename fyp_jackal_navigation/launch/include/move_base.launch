@@ -35,6 +35,9 @@
          reachable cell within 0.35 m of the click. -->
     <param name="NavfnROS/default_tolerance" value="0.35"/>
     <param name="controller_frequency" value="10.0"/>
+    <!-- TEB's optimizer is heavier per cycle; 8 Hz keeps it comfortably
+         inside its budget instead of missing the 10 Hz loop. -->
+    <param name="controller_frequency" value="8.0" if="$(eval planner == 'teb')"/>
     <param name="planner_frequency" value="2.0"/>
 
     <!-- Recovery ladder. The stock behaviors only clear marks FAR from the

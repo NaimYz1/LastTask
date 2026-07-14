@@ -26,7 +26,9 @@ TebLocalPlannerROS:
   # 0.0 = diff-drive (can still pivot when truly required, but the
   # optimizer strongly prefers smooth arcs). Set 0.15-0.30 for strictly
   # car-like motion - note the robot then needs multi-point turns to
-  # reverse direction in the open areas.
+  # reverse direction in the open areas. Do NOT exceed ~0.3 on this course:
+  # a radius R needs a 2R-diameter circle to turn, and the constraint is
+  # soft (the optimizer oscillates when it cannot be satisfied).
   min_turning_radius: 0.0
   footprint_model:
     type: polygon
@@ -43,6 +45,15 @@ TebLocalPlannerROS:
   include_costmap_obstacles: true
   costmap_obstacles_behind_robot_dist: 1.0
   obstacle_poses_affected: 20
+
+  # CRITICAL for CPU: without a converter, EVERY occupied costmap cell is a
+  # separate obstacle in the optimizer - in a cluttered lab that overloaded
+  # the control loop (0.2 s cycles), starved AMCL, and the robot
+  # delocalized mid-run. The converter clusters cells into a few line
+  # segments instead.
+  costmap_converter_plugin: "costmap_converter::CostmapToLinesDBSRANSAC"
+  costmap_converter_spin_thread: true
+  costmap_converter_rate: 5
 
   # Optimization weights
   no_inner_iterations: 5

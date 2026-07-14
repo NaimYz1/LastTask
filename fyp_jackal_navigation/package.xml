@@ -27,4 +27,5 @@
   <exec_depend>rviz</exec_depend>
   <!-- optional: only needed when launching with planner:=teb -->
   <exec_depend>teb_local_planner</exec_depend>
+  <exec_depend>costmap_converter</exec_depend>
 </package>
