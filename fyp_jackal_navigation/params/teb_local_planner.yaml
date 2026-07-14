@@ -52,11 +52,20 @@ TebLocalPlannerROS:
   # CRITICAL for CPU: without a converter, EVERY occupied costmap cell is a
   # separate obstacle in the optimizer - in a cluttered lab that overloaded
   # the control loop (0.2 s cycles), starved AMCL, and the robot
-  # delocalized mid-run. The converter clusters cells into a few line
-  # segments instead.
-  costmap_converter_plugin: "costmap_converter::CostmapToLinesDBSRANSAC"
+  # delocalized mid-run.
+  # POLYGONS, not lines: the lines converter (CostmapToLinesDBSRANSAC)
+  # silently dropped small isolated obstacles (a lone box marks ~5-10
+  # cells, which is not a line) - the costmap and RViz showed them but TEB
+  # never received them and drove straight through. Convex-hull polygons
+  # keep every cluster, however small.
+  costmap_converter_plugin: "costmap_converter::CostmapToPolygonsDBSMCCH"
   costmap_converter_spin_thread: true
   costmap_converter_rate: 5
+  costmap_converter/CostmapToPolygonsDBSMCCH:
+    cluster_max_distance: 0.4
+    cluster_min_pts: 2
+    cluster_max_pts: 700
+    convex_hull_min_pt_separation: 0.1
 
   # Optimization weights
   no_inner_iterations: 5
