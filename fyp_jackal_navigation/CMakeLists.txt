@@ -10,9 +10,10 @@ catkin_install_python(PROGRAMS
   scripts/measure_tilt.py
   scripts/nav_debug.py
   scripts/costmap_janitor.py
+  scripts/waypoint_nav.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
-install(DIRECTORY launch params maps rviz
+install(DIRECTORY launch params maps rviz config
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
