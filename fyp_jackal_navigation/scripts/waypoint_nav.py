@@ -120,7 +120,7 @@ class WaypointNav(object):
               % (name, x, y, math.degrees(yaw), path))
         return 0
 
-    def warmup(self, dist=0.2, speed=0.1):
+    def warmup(self, dist=0.2, speed=0.1, force=False):
         print('warmup: creeping %.2f m forward for localization '
               '(clear space ahead!)' % dist)
         tw = Twist()
@@ -136,10 +136,19 @@ class WaypointNav(object):
         while rospy.get_time() - t0 < 8.0 and not rospy.is_shutdown():
             if self.std[0] < 0.20 and self.std[1] < 0.15:
                 print('localization converged (std %.2f m, %.2f rad)' % self.std)
-                return
+                return True
             rospy.sleep(0.2)
-        print('WARNING: localization still loose (std %.2f m, %.2f rad) - '
-              'continuing anyway' % self.std)
+        if self.std[0] > 0.35 and not force:
+            print('ABORT: localization too loose to navigate safely '
+                  '(std %.2f m, %.2f rad).' % self.std)
+            print('Is the robot really where AMCL thinks it is? If it is '
+                  'standing on a waypoint, rerun with:  --from <that waypoint>')
+            print('(or override with --force)')
+            return False
+        print('WARNING: localization loose (std %.2f m, %.2f rad) - '
+              'continuing (%s)' % (self.std + ('--force',) if force else
+                                   self.std + ('below abort threshold',)))
+        return True
 
     def goto(self, name, wp, client):
         goal = MoveBaseGoal()
@@ -179,6 +188,13 @@ def main():
     parser.add_argument('--set-pose', metavar='NAME', dest='set_pose',
                         help='re-initialize AMCL at this waypoint '
                              '(robot must physically be standing there)')
+    parser.add_argument('--from', metavar='NAME', dest='from_wp',
+                        help='the waypoint the robot is physically standing '
+                             'on right now: its saved pose is applied to '
+                             'AMCL before navigating')
+    parser.add_argument('--force', action='store_true',
+                        help='navigate even if localization stays loose '
+                             'after warmup')
     parser.add_argument('--where', action='store_true',
                         help='print current position and heading')
     parser.add_argument('--file', default=None, help='waypoints yaml path')
@@ -225,9 +241,18 @@ def main():
     print('waiting for move_base...')
     client.wait_for_server()
 
+    if args.from_wp:
+        if args.from_wp not in table:
+            print('Unknown --from waypoint "%s". Known: %s'
+                  % (args.from_wp, ', '.join(sorted(table))))
+            sys.exit(1)
+        print('applying saved pose of "%s" to AMCL...' % args.from_wp)
+        nav.set_pose(args.from_wp, table[args.from_wp])
+
     if not args.no_warmup:
         nav.wait_pose()
-        nav.warmup(dist=args.warmup_dist)
+        if not nav.warmup(dist=args.warmup_dist, force=args.force):
+            sys.exit(3)
 
     for name in args.waypoints:
         if not nav.goto(name, table[name], client):
