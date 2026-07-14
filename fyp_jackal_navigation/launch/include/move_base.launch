@@ -68,15 +68,18 @@
     <!-- Speed override (after the rosparam load so it wins). -->
     <param name="TrajectoryPlannerROS/max_vel_x" value="$(arg max_vel)"/>
 
-    <!-- fast-mode overrides (document order: these win over the yaml). -->
+    <!-- fast-mode overrides (document order: these win over the yaml).
+         planner_frequency deliberately NOT raised: 4 Hz replanning made
+         near-equal-cost routes flap side to side, and each flip triggered
+         escape reverses ("backing up with nothing in front") and visible
+         wrong-way excursions. -->
     <param name="planner_patience" value="2.0" if="$(arg fast)"/>
     <param name="controller_patience" value="4.0" if="$(arg fast)"/>
-    <param name="planner_frequency" value="4.0" if="$(arg fast)"/>
-    <param name="TrajectoryPlannerROS/max_vel_theta" value="1.5" if="$(arg fast)"/>
-    <param name="TrajectoryPlannerROS/min_vel_theta" value="-1.5" if="$(arg fast)"/>
+    <param name="TrajectoryPlannerROS/max_vel_theta" value="1.2" if="$(arg fast)"/>
+    <param name="TrajectoryPlannerROS/min_vel_theta" value="-1.2" if="$(arg fast)"/>
     <param name="TrajectoryPlannerROS/min_in_place_vel_theta" value="0.6" if="$(arg fast)"/>
     <param name="TrajectoryPlannerROS/max_rotational_vel" value="1.0" if="$(arg fast)"/>
-    <param name="TrajectoryPlannerROS/escape_vel" value="-0.3" if="$(arg fast)"/>
+    <param name="TrajectoryPlannerROS/escape_vel" value="-0.15" if="$(arg fast)"/>
     <param name="TrajectoryPlannerROS/sim_time" value="1.5" if="$(arg fast)"/>
     <param name="TrajectoryPlannerROS/xy_goal_tolerance" value="0.3" if="$(arg fast)"/>
     <param name="TrajectoryPlannerROS/yaw_goal_tolerance" value="6.28" if="$(arg fast)"/>

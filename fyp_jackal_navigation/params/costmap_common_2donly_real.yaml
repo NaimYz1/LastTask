@@ -26,5 +26,5 @@ obstacles_mid360:
   observation_sources: ""
 
 inflater_layer:
-  inflation_radius: 0.25
-  cost_scaling_factor: 10.0
+  inflation_radius: 0.30
+  cost_scaling_factor: 6.0

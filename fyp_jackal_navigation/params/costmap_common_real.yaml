@@ -65,6 +65,10 @@ obstacles_mid360:
 # must cover it, or the global planner plans paths the footprint check then
 # rejects. High cost_scaling makes the cost cushion beyond that decay fast,
 # so paths hug obstacles as closely as the geometry truly allows.
+# Wider, gentler cushion: with a steep gradient (scaling 10) the optimal
+# path skimmed the very edge of the tripod legs' inflation ring (~5 cm body
+# margin through the turn). 0.30/6.0 pushes routes ~10 cm further out and
+# rounds the turns. Must stay >= inscribed radius (0.165+0.07=0.235).
 inflater_layer:
-  inflation_radius: 0.25   # must stay >= inscribed radius (0.165+0.07=0.235)
-  cost_scaling_factor: 10.0
+  inflation_radius: 0.30
+  cost_scaling_factor: 6.0
