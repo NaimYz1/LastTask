@@ -30,6 +30,10 @@
   <arg name="max_vel" default="0.5"/>
   <!-- fast:=true for snappier decisions and quicker turns (demo pace). -->
   <arg name="fast" default="false"/>
+  <!-- Wipe costmaps every N seconds (0 = off). Stops global-costmap mark
+       smear from AMCL jitter sealing narrow corridors over a run; safe
+       because the mid360_filter window re-marks everything within 0.1 s. -->
+  <arg name="clear_period" default="10.0"/>
   <arg name="scan_topic" default="scan"/>
 
   <!-- Mount values, MEASURED with measure_tilt.py on 2026-07-13:
@@ -81,6 +85,11 @@
   </node>
 
   <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)"/>
+
+  <node pkg="fyp_jackal_navigation" type="costmap_janitor.py" name="costmap_janitor"
+        output="screen">
+    <param name="period" value="$(arg clear_period)"/>
+  </node>
 
   <include file="$(find fyp_jackal_navigation)/launch/include/amcl.launch">
     <arg name="scan_topic" value="$(arg scan_topic)"/>

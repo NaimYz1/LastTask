@@ -19,6 +19,11 @@
   <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
     <param name="base_global_planner" value="navfn/NavfnROS"/>
     <param name="base_local_planner" value="base_local_planner/TrajectoryPlannerROS"/>
+    <!-- Without tolerance, a goal clicked within the inscribed ring of any
+         furniture makes navfn fail instantly and deterministically
+         ("Failed to find a valid plan"). With it, navfn plans to the best
+         reachable cell within 0.35 m of the click. -->
+    <param name="NavfnROS/default_tolerance" value="0.35"/>
     <param name="controller_frequency" value="10.0"/>
     <param name="planner_frequency" value="2.0"/>
 
