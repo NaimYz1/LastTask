@@ -15,8 +15,13 @@
 # min_obstacle_height 0.15: real floors are uneven and the mount calibration
 # is imperfect; raise to 0.20 if the floor still marks as an obstacle.
 
+# padding 0.07: the local planner only hard-rejects the footprint BORDER
+# touching LETHAL cells on a 5 cm grid in the odom frame - during tight
+# maneuvers, grid discretization + skid-steer slip eat ~5 cm, so 5 cm
+# padding led to body brushes. 0.07 restores real margin while keeping the
+# 1.0 m bridge corridor passable (2 x (0.165+0.07) = 0.47 < 1.0).
 footprint: [[-0.21, -0.165], [-0.21, 0.165], [0.21, 0.165], [0.21, -0.165]]
-footprint_padding: 0.05
+footprint_padding: 0.07
 transform_tolerance: 0.5
 
 obstacles_layer:
@@ -53,5 +58,5 @@ obstacles_layer:
 # rejects. High cost_scaling makes the cost cushion beyond that decay fast,
 # so paths hug obstacles as closely as the geometry truly allows.
 inflater_layer:
-  inflation_radius: 0.22
+  inflation_radius: 0.25   # must stay >= inscribed radius (0.165+0.07=0.235)
   cost_scaling_factor: 10.0

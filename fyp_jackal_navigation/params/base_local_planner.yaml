@@ -32,11 +32,14 @@ TrajectoryPlannerROS:
   max_rotational_vel: 0.6
   min_in_place_rotational_vel: 0.3
 
-  # Trajectory scoring
+  # Trajectory scoring. occdist_scale raised: high-cost (near-obstacle)
+  # cells only lower a trajectory's score, they never hard-reject it - with
+  # 0.02 that penalty was so weak the planner happily grazed obstacles on
+  # complex maneuvers whenever it shortened the path.
   meter_scoring: true
   pdist_scale: 0.75
   gdist_scale: 0.8
-  occdist_scale: 0.02
+  occdist_scale: 0.1
   dwa: true
 
   oscillation_reset_dist: 0.05
