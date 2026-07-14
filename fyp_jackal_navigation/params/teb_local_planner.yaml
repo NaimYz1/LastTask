@@ -19,7 +19,10 @@ TebLocalPlannerROS:
 
   # Robot kinematics
   max_vel_x: 0.4
-  max_vel_x_backwards: 0.15
+  # Near-zero backwards speed + the very high forward-drive weight below
+  # make reversing effectively forbidden (TEB was consistently starting
+  # legs with a reverse-and-swing that clipped a cubicle).
+  max_vel_x_backwards: 0.05
   max_vel_theta: 1.0
   acc_lim_x: 1.0
   acc_lim_theta: 2.0
@@ -75,7 +78,7 @@ TebLocalPlannerROS:
   weight_acc_lim_x: 1.0
   weight_acc_lim_theta: 1.0
   weight_kinematics_nh: 1000.0
-  weight_kinematics_forward_drive: 100.0
+  weight_kinematics_forward_drive: 1000.0
   weight_kinematics_turning_radius: 1.0
   weight_optimaltime: 1.0
   weight_obstacle: 50.0
