@@ -58,9 +58,21 @@ class Mid360Filter(object):
         pitch = rospy.get_param('~mount_pitch', 0.6759)  # rad nose-down, measured (38.73 deg)
         self.min_z = rospy.get_param('~min_z', 0.05)     # along world-up, from base origin
         self.max_z = rospy.get_param('~max_z', 0.50)
-        self.min_range = rospy.get_param('~min_range', 0.30)
+        self.min_range = rospy.get_param('~min_range', 0.15)
         self.max_range = rospy.get_param('~max_range', 4.5)
         self.window = rospy.get_param('~accumulate', 1.5)   # seconds, 0 = off
+        # Blind-zone memory: the nose-down sensor cannot see obstacles in
+        # the last ~0.3 m before contact, and slow maneuvers next to a thin
+        # obstacle (TEB arcing around a tripod leg) outlast the accumulate
+        # window - the leg's points expired while it sat in the blind cone
+        # and the costmap cleared it. Points that age out of the window but
+        # are still within near_radius of the robot are kept until the
+        # robot moves away (the spot becomes re-observable) or they exceed
+        # near_timeout.
+        self.near_radius = rospy.get_param('~near_radius', 0.8)
+        self.near_timeout = rospy.get_param('~near_timeout', 15.0)
+        self.near_mem = np.zeros((0, 3))
+        self.near_t = np.zeros((0,))
         # Density filter over the accumulated window: keep a point only if
         # its 5 cm cell collected at least this many hits. Real obstacles
         # (even 1.5 cm tripod legs) rack up dozens of hits; single stray
@@ -166,11 +178,35 @@ class Mid360Filter(object):
             self.buffer.append((stamp, base.dot(rot.T) + trans))
             cutoff = stamp - self.window
             while self.buffer and self.buffer[0][0] < cutoff:
-                self.buffer.popleft()
-        if not self.buffer:
+                t_old, pts_old = self.buffer.popleft()
+                if pts_old.shape[0]:
+                    # expired but still close to the robot -> blind-zone memory
+                    rel = pts_old[:, :2] - trans[:2]
+                    near = (rel ** 2).sum(axis=1) < self.near_radius ** 2
+                    if near.any():
+                        self.near_mem = np.vstack([self.near_mem, pts_old[near]])
+                        self.near_t = np.concatenate(
+                            [self.near_t, np.full(int(near.sum()), t_old)])
+
+        # prune blind-zone memory: robot moved away (spot re-observable,
+        # the live pipeline takes over) or point too old; cap the size
+        if self.near_mem.shape[0]:
+            rel = self.near_mem[:, :2] - trans[:2]
+            keep = (((rel ** 2).sum(axis=1) < self.near_radius ** 2)
+                    & (stamp - self.near_t < self.near_timeout))
+            self.near_mem = self.near_mem[keep]
+            self.near_t = self.near_t[keep]
+            if self.near_mem.shape[0] > 5000:
+                self.near_mem = self.near_mem[-5000:]
+                self.near_t = self.near_t[-5000:]
+
+        frames = [b[1] for b in self.buffer]
+        if self.near_mem.shape[0]:
+            frames.append(self.near_mem)
+        if not frames:
             self.publish(msg, np.zeros((0, 3)))
             return
-        merged_odom = np.vstack([b[1] for b in self.buffer])
+        merged_odom = np.vstack(frames)
         merged_base = (merged_odom - trans).dot(rot)   # == R^T . (p - t)
 
         # density filter: drop isolated points (sensor noise)

@@ -33,6 +33,8 @@
   <!-- planner:=teb for smooth car-like arcs (no tank pivots). Requires:
        sudo apt-get install ros-melodic-teb-local-planner -->
   <arg name="planner" default="trajectory"/>
+  <!-- With planner:=teb: 0.0 = diff-drive, 0.15-0.30 = car-like turning circle. -->
+  <arg name="turn_radius" default="0.0"/>
   <!-- Wipe costmaps every N seconds (0 = off). Stops global-costmap mark
        smear from AMCL jitter sealing narrow corridors over a run; safe
        because the mid360_filter window re-marks everything within 0.1 s. -->
@@ -112,5 +114,6 @@
     <arg name="max_vel" value="$(arg max_vel)"/>
     <arg name="fast" value="$(arg fast)"/>
     <arg name="planner" value="$(arg planner)"/>
+    <arg name="turn_radius" value="$(arg turn_radius)"/>
   </include>
 </launch>

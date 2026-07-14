@@ -19,6 +19,9 @@
        ros-melodic-teb-local-planner installed). Default keeps the stock
        TrajectoryPlanner behaviour. -->
   <arg name="planner" default="trajectory"/>
+  <!-- TEB only: 0.0 = diff-drive (tight arcs allowed), 0.15-0.30 = strictly
+       car-like turning circles. -->
+  <arg name="turn_radius" default="0.0"/>
 
   <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
     <param name="base_global_planner" value="navfn/NavfnROS"/>
@@ -77,6 +80,8 @@
     <!-- Speed override (after the rosparam load so it wins). -->
     <param name="TrajectoryPlannerROS/max_vel_x" value="$(arg max_vel)"/>
     <param name="TebLocalPlannerROS/max_vel_x" value="$(arg max_vel)"
+           if="$(eval planner == 'teb')"/>
+    <param name="TebLocalPlannerROS/min_turning_radius" value="$(arg turn_radius)"
            if="$(eval planner == 'teb')"/>
 
     <!-- fast-mode overrides (document order: these win over the yaml).
