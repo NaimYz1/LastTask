@@ -15,13 +15,14 @@
 # min_obstacle_height 0.15: real floors are uneven and the mount calibration
 # is imperfect; raise to 0.20 if the floor still marks as an obstacle.
 
-# padding 0.07: the local planner only hard-rejects the footprint BORDER
-# touching LETHAL cells on a 5 cm grid in the odom frame - during tight
-# maneuvers, grid discretization + skid-steer slip eat ~5 cm, so 5 cm
-# padding led to body brushes. 0.07 restores real margin while keeping the
-# 1.0 m bridge corridor passable (2 x (0.165+0.07) = 0.47 < 1.0).
+# CORRIDOR GEOMETRY (measured 2026-07-14): the demo corridor is only
+# ~0.70 m wide and the robot is 0.43 m. padding 0.05 makes the costmap
+# footprint exactly the physical robot (0.43 wide) - every extra cm of
+# padding is taken from a 13.5 cm/side budget. NOTE: the rotation diagonal
+# (~0.67 m) barely fits the corridor: never demand in-place rotation inside
+# it (align before entering; goals with free heading).
 footprint: [[-0.21, -0.165], [-0.21, 0.165], [0.21, 0.165], [0.21, -0.165]]
-footprint_padding: 0.07
+footprint_padding: 0.05
 transform_tolerance: 0.5
 
 # Each sensor gets its OWN obstacle layer (combined by max). With a shared
@@ -65,10 +66,11 @@ obstacles_mid360:
 # must cover it, or the global planner plans paths the footprint check then
 # rejects. High cost_scaling makes the cost cushion beyond that decay fast,
 # so paths hug obstacles as closely as the geometry truly allows.
-# Wider, gentler cushion: with a steep gradient (scaling 10) the optimal
-# path skimmed the very edge of the tripod legs' inflation ring (~5 cm body
-# margin through the turn). 0.30/6.0 pushes routes ~10 cm further out and
-# rounds the turns. Must stay >= inscribed radius (0.165+0.07=0.235).
+# Corridor tuning: inflation must stay just above the inscribed radius
+# (0.165+0.05=0.215) and decay STEEPLY, or in a 0.70 m corridor every cell
+# carries cost and the planner dithers. The zero-cost centre ribbon is only
+# ~0.2 m wide - centring comes from following the global path, not from
+# cost avoidance.
 inflater_layer:
-  inflation_radius: 0.30
-  cost_scaling_factor: 6.0
+  inflation_radius: 0.24
+  cost_scaling_factor: 10.0

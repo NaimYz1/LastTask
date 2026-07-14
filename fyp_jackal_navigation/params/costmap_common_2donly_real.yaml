@@ -4,7 +4,7 @@
 # the box on the tripod, or (reliably) the thin tripod legs.
 
 footprint: [[-0.21, -0.165], [-0.21, 0.165], [0.21, 0.165], [0.21, -0.165]]
-footprint_padding: 0.07
+footprint_padding: 0.05
 transform_tolerance: 0.5
 
 obstacles_scan:
@@ -26,5 +26,5 @@ obstacles_mid360:
   observation_sources: ""
 
 inflater_layer:
-  inflation_radius: 0.30
-  cost_scaling_factor: 6.0
+  inflation_radius: 0.24
+  cost_scaling_factor: 10.0
