@@ -257,8 +257,28 @@ def main():
             print('Unknown --from waypoint "%s". Known: %s'
                   % (args.from_wp, ', '.join(sorted(table))))
             sys.exit(1)
-        print('applying saved pose of "%s" to AMCL...' % args.from_wp)
-        nav.set_pose(args.from_wp, table[args.from_wp])
+        wp = table[args.from_wp]
+        nav.wait_pose()
+        # If AMCL is already tight AND roughly agrees with the waypoint
+        # (e.g. the robot NAVIGATED here - it stops anywhere within the
+        # goal tolerance of the marker), keep AMCL's own estimate: it is
+        # more precise than asserting the marker pose, and overwriting a
+        # correct belief with an approximate one misaligns the whole map.
+        # Only apply the reset when AMCL is loose or clearly disagrees
+        # (i.e. the robot was manually placed / is lost).
+        d = dyaw = None
+        if nav.pose is not None:
+            d = math.hypot(nav.pose[0] - wp['x'], nav.pose[1] - wp['y'])
+            raw = nav.pose[2] - wp.get('yaw', 0.0)
+            dyaw = abs(math.atan2(math.sin(raw), math.cos(raw)))
+        if (d is not None and nav.std[0] < 0.25 and d < 0.5
+                and dyaw < math.radians(35)):
+            print('AMCL already tight and agrees with "%s" (off by %.2f m, '
+                  '%.0f deg) - keeping its own estimate'
+                  % (args.from_wp, d, math.degrees(dyaw)))
+        else:
+            print('applying saved pose of "%s" to AMCL...' % args.from_wp)
+            nav.set_pose(args.from_wp, wp)
 
     if not args.no_warmup:
         nav.wait_pose()

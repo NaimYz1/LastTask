@@ -73,6 +73,9 @@ TebLocalPlannerROS:
   # Optimization weights
   no_inner_iterations: 5
   no_outer_iterations: 4
+  # must stay below max_vel_x_backwards (0.05) or TEB warns about a
+  # negative bound / undefined behavior
+  penalty_epsilon: 0.03
   weight_max_vel_x: 2.0
   weight_max_vel_theta: 1.0
   weight_acc_lim_x: 1.0
