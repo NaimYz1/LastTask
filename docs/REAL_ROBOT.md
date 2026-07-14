@@ -134,7 +134,33 @@ Known harmless warnings on this robot:
   specifically, shorten the tripod so the box bottom sits below ~0.55 m.
 - Safety: first bridge run with a hand on the e-stop; max speed is 0.5 m/s.
 
-## 6. Why the cloud looks "cut off" above ~0.75 m (it is not a bug)
+## 6. Debugging failed goals: the black-box recorder
+
+When a goal aborts ("spins then stops"), run this in a third terminal
+DURING the tests:
+
+```bash
+rosrun fyp_jackal_navigation nav_debug.py
+```
+
+It records everything relevant to `~/.ros/nav_debug/nav_debug_*.log`
+(2-second status snapshots: pose, localization std, lethal cells around the
+robot, mid360 point count, cmd_vel) and, at the moment move_base aborts,
+prints a **VERDICT** naming the most likely cause:
+
+- **MISLOCALIZED** — AMCL covariance blew up (the "works after re-setting
+  2D Pose Estimate" signature). Fix: fresh pose estimate, not a restart.
+- **PINNED / BOXED IN** — lethal cells inside/around the footprint.
+  Screenshot the local costmap + magenta cloud: real object or phantom?
+- **SENSOR STALL** — a topic went silent (driver died / battery / network).
+- none of the above — tight-gap maneuver failure; place goals in open
+  space and approach gaps head-on.
+
+It also raises move_base's internal loggers to DEBUG, so per-cycle planner
+detail (every scored trajectory, every costmap update) is captured in
+`~/.ros/log/latest/move_base*.log` for deep dives.
+
+## 7. Why the cloud looks "cut off" above ~0.75 m (it is not a bug)
 
 The Mid-360's vertical FOV is −7°..+52° relative to itself; tilted 38.22°
 nose-down that is **−45°..+14° relative to the floor**. From 0.455 m height,
@@ -152,7 +178,7 @@ scan — the bridge deck becomes a wall and the robot will refuse to drive
 under. Our `nav_real.launch` consumes `/livox/lidar` directly with proper
 height filtering; no converter is needed.
 
-## 7. Troubleshooting
+## 8. Troubleshooting
 
 | Symptom | Fix |
 |---|---|
