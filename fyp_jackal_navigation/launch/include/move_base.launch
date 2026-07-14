@@ -22,6 +22,10 @@
   <!-- TEB only: 0.0 = diff-drive (tight arcs allowed), 0.15-0.30 = strictly
        car-like turning circles. -->
   <arg name="turn_radius" default="0.0"/>
+  <!-- park:=true - after reaching the goal position, rotate in place
+       (skid-steer) until the robot matches the 2D Nav Goal arrow heading.
+       park:=false - stop at the position with whatever heading it arrived. -->
+  <arg name="park" default="true"/>
 
   <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
     <param name="base_global_planner" value="navfn/NavfnROS"/>
@@ -101,11 +105,18 @@
     <param name="TrajectoryPlannerROS/escape_vel" value="-0.15" if="$(arg fast)"/>
     <param name="TrajectoryPlannerROS/sim_time" value="1.5" if="$(arg fast)"/>
     <param name="TrajectoryPlannerROS/xy_goal_tolerance" value="0.3" if="$(arg fast)"/>
-    <param name="TrajectoryPlannerROS/yaw_goal_tolerance" value="6.28" if="$(arg fast)"/>
-    <param name="TrajectoryPlannerROS/latch_xy_goal_tolerance" value="true" if="$(arg fast)"/>
     <param name="TebLocalPlannerROS/xy_goal_tolerance" value="0.3"
            if="$(eval fast and planner == 'teb')"/>
+
+    <!-- Parking: latch the position once reached, then align to the goal
+         arrow heading with an in-place rotation - or ignore heading
+         entirely with park:=false. -->
+    <param name="TrajectoryPlannerROS/latch_xy_goal_tolerance" value="true"/>
+    <param name="TrajectoryPlannerROS/yaw_goal_tolerance" value="0.25" if="$(arg park)"/>
+    <param name="TrajectoryPlannerROS/yaw_goal_tolerance" value="6.28" unless="$(arg park)"/>
+    <param name="TebLocalPlannerROS/yaw_goal_tolerance" value="0.25"
+           if="$(eval park and planner == 'teb')"/>
     <param name="TebLocalPlannerROS/yaw_goal_tolerance" value="6.28"
-           if="$(eval fast and planner == 'teb')"/>
+           if="$(eval (not park) and planner == 'teb')"/>
   </node>
 </launch>

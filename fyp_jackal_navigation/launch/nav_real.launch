@@ -35,6 +35,9 @@
   <arg name="planner" default="trajectory"/>
   <!-- With planner:=teb: 0.0 = diff-drive, 0.15-0.30 = car-like turning circle. -->
   <arg name="turn_radius" default="0.0"/>
+  <!-- park:=true (default): rotate in place at the goal to match the 2D Nav
+       Goal arrow heading. park:=false: stop with arrival heading. -->
+  <arg name="park" default="true"/>
   <!-- Wipe costmaps every N seconds (0 = off). Stops global-costmap mark
        smear from AMCL jitter sealing narrow corridors over a run; safe
        because the mid360_filter window re-marks everything within 0.1 s. -->
@@ -115,5 +118,6 @@
     <arg name="fast" value="$(arg fast)"/>
     <arg name="planner" value="$(arg planner)"/>
     <arg name="turn_radius" value="$(arg turn_radius)"/>
+    <arg name="park" value="$(arg park)"/>
   </include>
 </launch>
