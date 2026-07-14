@@ -88,10 +88,14 @@ class WaypointNav(object):
         msg.pose.pose.position.y = wp['y']
         msg.pose.pose.orientation = Quaternion(
             0.0, 0.0, math.sin(yaw / 2.0), math.cos(yaw / 2.0))
-        # same uncertainty RViz's "2D Pose Estimate" uses
-        msg.pose.covariance[0] = 0.25
-        msg.pose.covariance[7] = 0.25
-        msg.pose.covariance[35] = 0.068
+        # Tighter than RViz's 2D Pose Estimate: a waypoint pose means the
+        # robot is physically ON the marker (within ~15 cm / ~10 deg), not
+        # merely "somewhere around here". The home area has few mapped
+        # features, so with a loose 0.5 m seed AMCL could not converge
+        # within the short warmup creep.
+        msg.pose.covariance[0] = 0.03    # std ~0.17 m
+        msg.pose.covariance[7] = 0.03
+        msg.pose.covariance[35] = 0.02   # std ~8 deg
         # publish a few times so amcl definitely receives it, even if it
         # starts after us
         for _ in range(5):
