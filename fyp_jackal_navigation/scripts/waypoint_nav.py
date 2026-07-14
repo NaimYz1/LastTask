@@ -125,6 +125,13 @@ class WaypointNav(object):
         return 0
 
     def warmup(self, dist=0.2, speed=0.1, force=False):
+        # already tight (e.g. right after --from or the launch auto-init)?
+        # skip the creep entirely.
+        rospy.sleep(0.5)
+        if self.std[0] < 0.25 and self.std[1] < 0.18:
+            print('localization already tight (std %.2f m, %.2f rad) - '
+                  'skipping warmup' % self.std)
+            return True
         print('warmup: creeping %.2f m forward for localization '
               '(clear space ahead!)' % dist)
         tw = Twist()

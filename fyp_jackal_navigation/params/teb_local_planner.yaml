@@ -39,8 +39,11 @@ TebLocalPlannerROS:
   yaw_goal_tolerance: 0.3
   free_goal_vel: false
 
-  # Obstacles (distances measured from the polygon edge)
-  min_obstacle_dist: 0.05
+  # Obstacles (distances measured from the polygon edge). 0.08 gives a
+  # little slack against under-marked obstacles (glossy/curved surfaces
+  # return weak grazing hits) while still fitting the 0.70 m corridor
+  # (0.135 m wall clearance per side when centred).
+  min_obstacle_dist: 0.08
   inflation_dist: 0.15
   include_costmap_obstacles: true
   costmap_obstacles_behind_robot_dist: 1.0

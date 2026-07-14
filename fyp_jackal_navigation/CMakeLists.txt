@@ -11,6 +11,7 @@ catkin_install_python(PROGRAMS
   scripts/nav_debug.py
   scripts/costmap_janitor.py
   scripts/waypoint_nav.py
+  scripts/stamp_map.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
