@@ -9,6 +9,12 @@
   <arg name="global_costmap_params" default="$(find fyp_jackal_navigation)/params/global_costmap.yaml"/>
   <!-- Top driving speed (m/s). Default matches base_local_planner.yaml. -->
   <arg name="max_vel" default="0.5"/>
+  <!-- fast:=true - snappier decisions, more risk, base yaml untouched:
+       quicker in-place rotation (the "thinking" spin is really just slow
+       commanded rotation), short patience before replan/recovery, faster
+       recovery spins, loose goal tolerances (no final heading pirouette),
+       shorter lookahead. -->
+  <arg name="fast" default="false"/>
 
   <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
     <param name="base_global_planner" value="navfn/NavfnROS"/>
@@ -56,5 +62,19 @@
 
     <!-- Speed override (after the rosparam load so it wins). -->
     <param name="TrajectoryPlannerROS/max_vel_x" value="$(arg max_vel)"/>
+
+    <!-- fast-mode overrides (document order: these win over the yaml). -->
+    <param name="planner_patience" value="2.0" if="$(arg fast)"/>
+    <param name="controller_patience" value="4.0" if="$(arg fast)"/>
+    <param name="planner_frequency" value="4.0" if="$(arg fast)"/>
+    <param name="TrajectoryPlannerROS/max_vel_theta" value="1.5" if="$(arg fast)"/>
+    <param name="TrajectoryPlannerROS/min_vel_theta" value="-1.5" if="$(arg fast)"/>
+    <param name="TrajectoryPlannerROS/min_in_place_vel_theta" value="0.6" if="$(arg fast)"/>
+    <param name="TrajectoryPlannerROS/max_rotational_vel" value="1.0" if="$(arg fast)"/>
+    <param name="TrajectoryPlannerROS/escape_vel" value="-0.3" if="$(arg fast)"/>
+    <param name="TrajectoryPlannerROS/sim_time" value="1.5" if="$(arg fast)"/>
+    <param name="TrajectoryPlannerROS/xy_goal_tolerance" value="0.3" if="$(arg fast)"/>
+    <param name="TrajectoryPlannerROS/yaw_goal_tolerance" value="6.28" if="$(arg fast)"/>
+    <param name="TrajectoryPlannerROS/latch_xy_goal_tolerance" value="true" if="$(arg fast)"/>
   </node>
 </launch>

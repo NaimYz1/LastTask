@@ -28,6 +28,8 @@
   <arg name="accumulate" default="1.5"/>
   <arg name="clearance" default="10.0"/>
   <arg name="max_vel" default="0.5"/>
+  <!-- fast:=true for snappier decisions and quicker turns (demo pace). -->
+  <arg name="fast" default="false"/>
   <arg name="scan_topic" default="scan"/>
 
   <!-- Mount values, MEASURED with measure_tilt.py on 2026-07-13:
@@ -96,5 +98,6 @@
     <arg name="global_costmap_params"
          value="$(find fyp_jackal_navigation)/params/global_costmap_real.yaml"/>
     <arg name="max_vel" value="$(arg max_vel)"/>
+    <arg name="fast" value="$(arg fast)"/>
   </include>
 </launch>
