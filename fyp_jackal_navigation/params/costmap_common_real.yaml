@@ -24,8 +24,15 @@ footprint: [[-0.21, -0.165], [-0.21, 0.165], [0.21, 0.165], [0.21, -0.165]]
 footprint_padding: 0.07
 transform_tolerance: 0.5
 
-obstacles_layer:
-  observation_sources: scan mid360
+# Each sensor gets its OWN obstacle layer (combined by max). With a shared
+# layer, clearing is 2D and cross-sensor: Hokuyo rays passing OVER the
+# stool base or BESIDE thin tripod legs at its scan plane were erasing the
+# Mid-360's marks in those cells 40x/s, while the Mid-360 re-marked at only
+# 10 Hz. Separate layers = each sensor can only clear its own evidence.
+# (Layer names contain "obstacles" so clear_costmap_recovery still clears
+# them.)
+obstacles_scan:
+  observation_sources: scan
   scan:
     sensor_frame: laser
     data_type: LaserScan
@@ -36,11 +43,12 @@ obstacles_layer:
     raytrace_range: 6.5
     min_obstacle_height: -1.0
     max_obstacle_height: 1.0
-  # The mid360_filter node (started by nav_real.launch) already applied the
-  # obstacle height band relative to base_link and publishes the cloud IN
-  # base_link frame - no TF lookup of livox_frame, so navigation is immune
-  # to the other system on this robot that also moves that frame, and to
-  # odometry z-drift. The costmap's own height filter is left wide open.
+
+obstacles_mid360:
+  # The mid360_filter node already applied the height band relative to
+  # base_link and publishes IN base_link frame (TF-free, drift-immune);
+  # the costmap-side height filter stays wide open.
+  observation_sources: mid360
   mid360:
     sensor_frame: base_link
     data_type: PointCloud2

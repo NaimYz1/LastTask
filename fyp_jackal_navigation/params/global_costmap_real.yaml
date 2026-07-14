@@ -1,0 +1,16 @@
+# REAL ROBOT global costmap: per-sensor obstacle layers (see the note in
+# costmap_common_real.yaml - a shared layer let the Hokuyo erase the
+# Mid-360's marks).
+global_costmap:
+  global_frame: map
+  robot_base_frame: base_link
+  update_frequency: 2.0
+  publish_frequency: 1.0
+  static_map: true
+  rolling_window: false
+
+  plugins:
+    - {name: static_layer,     type: "costmap_2d::StaticLayer"}
+    - {name: obstacles_scan,   type: "costmap_2d::ObstacleLayer"}
+    - {name: obstacles_mid360, type: "costmap_2d::ObstacleLayer"}
+    - {name: inflater_layer,   type: "costmap_2d::InflationLayer"}

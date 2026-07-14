@@ -6,6 +6,7 @@
   <arg name="common_params" default="$(find fyp_jackal_navigation)/params/costmap_common.yaml"/>
   <arg name="common_params_2d" default="$(find fyp_jackal_navigation)/params/costmap_common_2donly.yaml"/>
   <arg name="local_costmap_params" default="$(find fyp_jackal_navigation)/params/local_costmap.yaml"/>
+  <arg name="global_costmap_params" default="$(find fyp_jackal_navigation)/params/global_costmap.yaml"/>
   <!-- Top driving speed (m/s). Default matches base_local_planner.yaml. -->
   <arg name="max_vel" default="0.5"/>
 
@@ -42,7 +43,7 @@
               command="load" ns="local_costmap" unless="$(arg use_mid360)"/>
 
     <rosparam file="$(arg local_costmap_params)" command="load"/>
-    <rosparam file="$(find fyp_jackal_navigation)/params/global_costmap.yaml" command="load"/>
+    <rosparam file="$(arg global_costmap_params)" command="load"/>
     <rosparam file="$(find fyp_jackal_navigation)/params/base_local_planner.yaml" command="load"/>
 
     <!-- Overhead clearance override (must come AFTER the rosparam loads):

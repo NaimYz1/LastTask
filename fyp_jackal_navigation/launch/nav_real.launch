@@ -93,6 +93,8 @@
          value="$(find fyp_jackal_navigation)/params/costmap_common_2donly_real.yaml"/>
     <arg name="local_costmap_params"
          value="$(find fyp_jackal_navigation)/params/local_costmap_real.yaml"/>
+    <arg name="global_costmap_params"
+         value="$(find fyp_jackal_navigation)/params/global_costmap_real.yaml"/>
     <arg name="max_vel" value="$(arg max_vel)"/>
   </include>
 </launch>

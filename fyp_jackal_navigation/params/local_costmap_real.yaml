@@ -16,5 +16,6 @@ local_costmap:
   static_map: false
 
   plugins:
-    - {name: obstacles_layer, type: "costmap_2d::ObstacleLayer"}
-    - {name: inflater_layer,  type: "costmap_2d::InflationLayer"}
+    - {name: obstacles_scan,   type: "costmap_2d::ObstacleLayer"}
+    - {name: obstacles_mid360, type: "costmap_2d::ObstacleLayer"}
+    - {name: inflater_layer,   type: "costmap_2d::InflationLayer"}
