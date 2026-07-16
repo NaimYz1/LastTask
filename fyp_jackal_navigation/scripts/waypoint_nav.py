@@ -251,6 +251,8 @@ def main():
     client = actionlib.SimpleActionClient('move_base', MoveBaseAction)
     print('waiting for move_base...')
     client.wait_for_server()
+    # Ctrl-C must stop the robot, not leave the active goal running
+    rospy.on_shutdown(client.cancel_all_goals)
 
     if args.from_wp:
         if args.from_wp not in table:

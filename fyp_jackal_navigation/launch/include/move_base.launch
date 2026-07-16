@@ -104,8 +104,11 @@
     <param name="TrajectoryPlannerROS/max_rotational_vel" value="1.0" if="$(arg fast)"/>
     <param name="TrajectoryPlannerROS/escape_vel" value="-0.15" if="$(arg fast)"/>
     <param name="TrajectoryPlannerROS/sim_time" value="1.5" if="$(arg fast)"/>
-    <param name="TrajectoryPlannerROS/xy_goal_tolerance" value="0.3" if="$(arg fast)"/>
-    <param name="TebLocalPlannerROS/xy_goal_tolerance" value="0.3"
+    <!-- 0.2 not 0.3: a loose position tolerance let the robot park up to
+         30 cm off the waypoint - sometimes right against furniture, where
+         the next leg's trajectory start is infeasible. -->
+    <param name="TrajectoryPlannerROS/xy_goal_tolerance" value="0.2" if="$(arg fast)"/>
+    <param name="TebLocalPlannerROS/xy_goal_tolerance" value="0.2"
            if="$(eval fast and planner == 'teb')"/>
 
     <!-- Parking: latch the position once reached, then align to the goal
