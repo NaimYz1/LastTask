@@ -6,6 +6,9 @@
   <arg name="initial_pose_x" default="0.0"/>
   <arg name="initial_pose_y" default="0.0"/>
   <arg name="initial_pose_a" default="0.0"/>
+  <!-- precise:=true - heavier but tighter AMCL: 2.5x particles, double the
+       beams per update, corrections every 2 cm. Costs CPU; defaults off. -->
+  <arg name="precise" default="false"/>
 
   <node pkg="amcl" type="amcl" name="amcl">
     <remap from="scan" to="$(arg scan_topic)"/>
@@ -20,15 +23,20 @@
     <param name="initial_pose_y" value="$(arg initial_pose_y)"/>
     <param name="initial_pose_a" value="$(arg initial_pose_a)"/>
 
-    <param name="min_particles" value="500"/>
-    <param name="max_particles" value="2000"/>
-    <param name="kld_err" value="0.05"/>
+    <param name="min_particles" value="500" unless="$(arg precise)"/>
+    <param name="max_particles" value="2000" unless="$(arg precise)"/>
+    <param name="kld_err" value="0.05" unless="$(arg precise)"/>
+    <param name="min_particles" value="1000" if="$(arg precise)"/>
+    <param name="max_particles" value="5000" if="$(arg precise)"/>
+    <param name="kld_err" value="0.01" if="$(arg precise)"/>
     <param name="kld_z" value="0.99"/>
     <!-- Frequent updates: with 0.70 m corridor lanes the pose must converge
          fast; the start area is dominated by unmapped obstacles (tripod),
          so AMCL needs every scrap of motion to lock in. -->
-    <param name="update_min_d" value="0.05"/>
-    <param name="update_min_a" value="0.10"/>
+    <param name="update_min_d" value="0.05" unless="$(arg precise)"/>
+    <param name="update_min_a" value="0.10" unless="$(arg precise)"/>
+    <param name="update_min_d" value="0.02" if="$(arg precise)"/>
+    <param name="update_min_a" value="0.05" if="$(arg precise)"/>
     <param name="resample_interval" value="1"/>
     <param name="transform_tolerance" value="0.5"/>
     <param name="recovery_alpha_slow" value="0.0"/>
@@ -36,7 +44,8 @@
     <param name="gui_publish_rate" value="10.0"/>
 
     <param name="laser_model_type" value="likelihood_field"/>
-    <param name="laser_max_beams" value="180"/>
+    <param name="laser_max_beams" value="180" unless="$(arg precise)"/>
+    <param name="laser_max_beams" value="360" if="$(arg precise)"/>
     <param name="laser_likelihood_max_dist" value="2.0"/>
     <param name="laser_z_hit" value="0.95"/>
     <param name="laser_z_rand" value="0.05"/>

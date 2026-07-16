@@ -42,6 +42,10 @@
        physically start there). Set init_pose:="" to disable and use RViz's
        2D Pose Estimate instead. -->
   <arg name="init_pose" default="home"/>
+  <!-- precise_loc:=true - heavier, tighter AMCL (more particles/beams,
+       corrections every 2 cm). Watch for Control-loop-missed-rate warnings
+       when combined with TEB. -->
+  <arg name="precise_loc" default="false"/>
   <!-- Wipe costmaps every N seconds (0 = off). Stops global-costmap mark
        smear from AMCL jitter sealing narrow corridors over a run; safe
        because the mid360_filter window re-marks everything within 0.1 s. -->
@@ -105,6 +109,7 @@
 
   <include file="$(find fyp_jackal_navigation)/launch/include/amcl.launch">
     <arg name="scan_topic" value="$(arg scan_topic)"/>
+    <arg name="precise" value="$(arg precise_loc)"/>
   </include>
 
   <!-- One-shot: place the AMCL pose at the home waypoint so RViz opens with
