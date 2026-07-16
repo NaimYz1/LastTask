@@ -1,6 +1,9 @@
 # Waypoints in the map frame (yaw in radians).
-# Record real ones with the robot standing at the spot:
-#   rosrun fyp_jackal_navigation waypoint_nav.py --record home
-#   rosrun fyp_jackal_navigation waypoint_nav.py --record pointA
-home: {x: 0.0, y: 0.0, yaw: 0.0}
-pointA: {x: 1.0, y: 0.0, yaw: 0.0}
+# Yaw of each point faces the NEXT stop in the loop home -> A -> B -> C ->
+# home, so the robot parks pre-aimed for the following leg. To change a
+# heading, stand the robot there facing the desired way and:
+#   rosrun fyp_jackal_navigation waypoint_nav.py --record <name>
+home: {x: -0.031, y: 0.191, yaw: -1.617}
+pointA: {x: 10.8, y: -1.44, yaw: -1.754}
+pointB: {x: 10.5, y: -3.06, yaw: 3.077}
+pointC: {x: -0.0142, y: -2.38, yaw: 1.577}
